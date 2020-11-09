@@ -1,0 +1,6 @@
+{
+    "sketch": "skeletonControlArduino.ino",
+    "board": "arduino:sam:arduino_due_x_dbg",
+    "output": "build",
+    "port": "COM8"
+}

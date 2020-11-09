@@ -1,0 +1,87 @@
+[
+  {
+    "Sourcefile": null,
+    "Include": "",
+    "Includepath": "C:\\Users\\juerg\\AppData\\Local\\arduino15\\packages\\arduino\\hardware\\sam\\1.6.12\\cores\\arduino"
+  },
+  {
+    "Sourcefile": null,
+    "Include": "",
+    "Includepath": "C:\\Users\\juerg\\AppData\\Local\\arduino15\\packages\\arduino\\hardware\\sam\\1.6.12\\variants\\arduino_due_x"
+  },
+  {
+    "Sourcefile": "c:\\Projekte\\InMoov\\skeletonControlArduino\\build\\sketch\\skeletonControlArduino.ino.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "c:\\Projekte\\InMoov\\skeletonControlArduino\\build\\sketch\\Mai3Servo.cpp",
+    "Include": "Servo.h",
+    "Includepath": "C:\\Program Files (x86)\\Arduino\\libraries\\Servo\\src"
+  },
+  {
+    "Sourcefile": "c:\\Projekte\\InMoov\\skeletonControlArduino\\build\\sketch\\Mai3Servo.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "c:\\Projekte\\InMoov\\skeletonControlArduino\\build\\sketch\\readMessages.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "c:\\Projekte\\InMoov\\skeletonControlArduino\\build\\sketch\\skeletonControlArduino.cpp",
+    "Include": "Wire.h",
+    "Includepath": "C:\\Users\\juerg\\AppData\\Local\\arduino15\\packages\\arduino\\hardware\\sam\\1.6.12\\libraries\\Wire\\src"
+  },
+  {
+    "Sourcefile": "c:\\Projekte\\InMoov\\skeletonControlArduino\\build\\sketch\\skeletonControlArduino.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "c:\\Projekte\\InMoov\\skeletonControlArduino\\build\\sketch\\writeMessages.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Program Files (x86)\\Arduino\\libraries\\Servo\\src\\avr\\Servo.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Program Files (x86)\\Arduino\\libraries\\Servo\\src\\mbed\\Servo.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Program Files (x86)\\Arduino\\libraries\\Servo\\src\\megaavr\\Servo.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Program Files (x86)\\Arduino\\libraries\\Servo\\src\\nrf52\\Servo.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Program Files (x86)\\Arduino\\libraries\\Servo\\src\\sam\\Servo.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Program Files (x86)\\Arduino\\libraries\\Servo\\src\\samd\\Servo.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Program Files (x86)\\Arduino\\libraries\\Servo\\src\\stm32f4\\Servo.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Users\\juerg\\AppData\\Local\\arduino15\\packages\\arduino\\hardware\\sam\\1.6.12\\libraries\\Wire\\src\\Wire.cpp",
+    "Include": "",
+    "Includepath": null
+  }
+]
