@@ -1,2 +1,2 @@
-c:\Projekte\InMoov\skeletonControlArduino\build\libraries\Servo\samd\Servo.cpp.o: \
- C:\Program\ Files\ (x86)\Arduino\libraries\Servo\src\samd\Servo.cpp
+d:\Projekte\InMoov\skeletonControlArduino\build\libraries\Servo\samd\Servo.cpp.o: \
+ D:\Projekte\InMoov\Arduino\arduino-1.8.13\libraries\Servo\src\samd\Servo.cpp

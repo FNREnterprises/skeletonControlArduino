@@ -8,6 +8,7 @@
 
 #endif
 
+extern bool verbose;
 extern char msgCopyForParsing[64];
 
 int checkCommand();

@@ -31,14 +31,14 @@ public:
 	int autoDetachMs;
 	bool inverted;
 	int pin;
-	int powerPin;
+	int servoPowerPin;
 	int lastPosition;		// servo.read did not work for me
 	bool inMoveRequest;
 	bool thisServoVerbose;
 	char servoName[20];
 
 	// assign servo
-	void begin(int pin, int min, int max, int autoDetachMs, bool inverted, int lastPos, int powerPin);
+	void begin(int pin, int min, int max, int autoDetachMs, bool inverted, int lastPos, int servoPowerPin);
 
 	// powerUp
 	void powerUp();

@@ -8,6 +8,9 @@
 		"files.associations": {
 			"*.tcc": "cpp"
 		},
-		"deepcode.uploadApproved": true
+		"deepcode.uploadApproved": true,
+		"files.exclude": {
+			"**/build": true
+		}
 	}
 }

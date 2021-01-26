@@ -5,12 +5,12 @@
 #include "writeMessages.h"
 
 // set up a servo with speed control
-void Mai3Servo::begin(int servoPin, int servoMin, int servoMax, int servoAutoDetachMs, bool servoInverted, int servoLastPos, int servoPowerPin) {
+void Mai3Servo::begin(int servoPin, int servoMin, int servoMax, int servoAutoDetachMs, bool servoInverted, int servoLastPos, int powerPin) {
 
 	assigned = true;
 	pin = servoPin;
-	powerPin = servoPowerPin;
-	int min = servoMin;
+	servoPowerPin = powerPin;
+	min = servoMin;
 	max = servoMax;
 	autoDetachMs = servoAutoDetachMs;
 	inverted = servoInverted;
@@ -28,7 +28,7 @@ void Mai3Servo::powerUp() {
 	writeServoPosition(lastPosition, inverted);
 
 	if (thisServoVerbose) {
-		Serial.print("m31 powerUp, pin: "); Serial.print(pin);
+		Serial.print("i14 powerUp, pin: "); Serial.print(pin);
 		Serial.print(", lastPosition: "); Serial.print(lastPosition);
 		Serial.print(", inverted: "); Serial.print(inverted);
 		Serial.println();
@@ -42,7 +42,7 @@ void Mai3Servo::stopServo() {
 	arrivedMillis = millis();
 	lastPosition = int(nextPos);	// the last write position for the servo (might however not be the actual position as we have no feedback from servo)
 	if (verbose) {
-		Serial.print("m20 servo stop received, ");
+		Serial.print("i21 servo stop received, ");
 		Serial.print(servoName);
 		Serial.print(", lastPosition: ");
 		Serial.print(lastPosition);
@@ -80,7 +80,7 @@ int Mai3Servo::adjustOutlierPosition(int targetPos) {
 	// adjust if smaller than min
 	if (targetPos < min) {
 		adjustedPos = min;
-		Serial.print("m02 ");
+		Serial.print("w01 ");
 		Serial.print(servoName);
 		Serial.print(", position adjusted, requested position: ");
 		Serial.print(targetPos);
@@ -92,7 +92,7 @@ int Mai3Servo::adjustOutlierPosition(int targetPos) {
 	// .. or greater than max
 	if (targetPos > max) {
 		adjustedPos = max;
-		Serial.print("m02 ");
+		Serial.print("w02 ");
 		Serial.print(servoName);
 		Serial.print(", position adjusted, requested position: ");
 		Serial.print(targetPos);
@@ -109,16 +109,15 @@ int Mai3Servo::adjustOutlierPosition(int targetPos) {
 void Mai3Servo::moveTo(int targetPos, int duration) {
 
 	if (!assigned) {
-		Serial.println("m01 no action, servo not assigned yet");
+		Serial.println("e01 no action, servo not assigned yet");
 		return;
 	}
 
-	if (!servo.attached()) {
+	if (!attached()) {
 		// individual servos might get detached by reaching autodetach time after finished move
-		Serial.print("m06 sequence error, servo not attached "); Serial.print(servoName); Serial.println();
+		//Serial.print("e02 sequence error, servo not attached "); Serial.print(servoName); Serial.println();
 		attach();
 	}
-
 
 	targetPos = adjustOutlierPosition(targetPos);
 
@@ -131,7 +130,7 @@ void Mai3Servo::moveTo(int targetPos, int duration) {
 		// ignore move command to current position
 		nextPos = lastPosition;		// make sure to report last position in servo update
 		if (thisServoVerbose) {
-			Serial.print("request for move to current position, request ignored ");
+			Serial.print("i01 request for move to current position, request ignored ");
 			Serial.print(servoName);
 			Serial.println();
 		}
@@ -147,14 +146,16 @@ void Mai3Servo::moveTo(int targetPos, int duration) {
 	lastStatusUpdate = millis();
 
 	if (thisServoVerbose) {
+		Serial.print("i10 ");
 		Serial.print(servoName);
-		Serial.print(", moveTo received, m10 a");	Serial.print(arduinoId);
+		Serial.print(", a"); Serial.print(arduinoId);
+		Serial.print(", moveTo"); 
 		Serial.print(", pin: "); Serial.print(pin);
-		Serial.print(", targetPos: "); Serial.print(targetPos);
-		Serial.print(", duration: "); Serial.print(duration);
-		Serial.print(", startPosition: "); Serial.print(nextPos);
-		Serial.print(", numIncrements: "); Serial.print(numIncrements);
-		Serial.print(", increment: "); Serial.print(increment);
+		Serial.print(", targ: "); Serial.print(targetPos);
+		Serial.print(", dur: "); Serial.print(duration);
+		Serial.print(", start: "); Serial.print(nextPos);
+		Serial.print(", numInc: "); Serial.print(numIncrements);
+		Serial.print(", inc: "); Serial.print(increment);
 		Serial.println();
 	}
 }
@@ -226,7 +227,7 @@ void Mai3Servo::update()
 
 		if (thisServoVerbose) {
 			Serial.print(servoName); Serial.print(", m99 currentPos: "); Serial.print(nextPos);
-			Serial.print(", freeMemory: "); Serial.print(freeMemory());
+			//Serial.print(", freeMemory: "); Serial.print(freeMemory());
 			Serial.println();
 		}
 	}
@@ -239,7 +240,7 @@ void Mai3Servo::update()
 		lastPosition = round(nextPos);		// the assumed reached position
 
 		if (verbose || thisServoVerbose) {
-			Serial.print("target reached "); Serial.print(servoName);
+			Serial.print("i11 target reached "); Serial.print(servoName);
 			Serial.print(", position: "); Serial.print(lastPosition);
 			Serial.println();
 		}
@@ -252,18 +253,18 @@ void Mai3Servo::update()
 	if (inMoveRequest && (autoDetachMs > 0)) {
 
 		// check for arrivedMillis in the future, do nothing if so
-		if (arrivedMillis > millis())  {
-			/*
+		if (arrivedMillis > millis()) return;
+		/* {
+			
 			if (thisServoVerbose) {
-				Serial.print("servo "); Serial.print(servoName);
-				Serial.print("arrivedMillis ("); Serial.print(arrivedMillis); Serial.print(" in the future");
+				Serial.print("i12 detach servo "); Serial.print(servoName);
+				Serial.print(", arrivedMillis ("); Serial.print(arrivedMillis); Serial.print(" in the future");
 				Serial.print(" , currMillis: "); Serial.print(millis());
 				Serial.println();
 			}
-			*/
 			return;
 		}
-
+		*/
 		// check for move ended and autoDetachMs expired
 		if ((!moving) && ((millis() - arrivedMillis) > autoDetachMs)) {
 
@@ -271,7 +272,7 @@ void Mai3Servo::update()
 			inMoveRequest = false;
 
 			if (thisServoVerbose) {
-				Serial.print("servo "); Serial.print(servoName);
+				Serial.print("i13 servo "); Serial.print(servoName);
 				Serial.print(" inMoveRequest cleared, autoDetachMs "); Serial.print(autoDetachMs);
 				Serial.print(" ms after arrived: "); Serial.print((millis()-arrivedMillis));
 				Serial.println();

@@ -103,27 +103,47 @@ change log level for servo: 7,<servoId>,<newState>
 
 
 
- logs:
- m01 no action, servo not assigned yet
- m02 requested position greater than max
- m03 requested position smaller than min
- m04 maxPosition < minPosition
- m05 incoming messages
- m06 moveTo received but servo is not attached
- m10 moveTo received
- m12 target reached
- m14 servo detached
- m15 delayed servo detach
- m16 update AutoDetach time received
- m20 servo stop received
- m21 stop all servos received
- m25 servo power pins can not be set with pinHigh, pinLow
- m26 digital pin set to HIGH
- m30 servo move request triggers power pin for servo group
- m31 set servo last position before powerup
- m35 power pin deactivated
+logs:
+control with log_r0 in readMessages
+r00 received characters in readMessages
+r01 parsing buffer of message
+
+e01 no action, servo not assigned yet
+e02 no action, servo not attached
+e03 servo set verbose for unknown servo
+
+e04 maxPosition < minPosition
+e06 moveTo received but servo is not attached
+
+w01 requested position smaller than min
+w02 requested position greater than max
+w03 new move request while still in move 
+
+i01 request to move to current position
+i10 request to move to new position
+i11 target reached
+i12 arrived time in the future
+i13 detach servo
+i14 set servo last position before powerup
+
+i20 new autoDetach value received 
+i21 servo stop received
+i22 stop all servos received
+
+i30 digital pin set to HIGH
+i31 digital pin set to LOW 
+ 
+i40 power pin test in setup
+i41 powergroup ON/OFF
+
+i50 log of incoming messages
+i51 temporary logs for debugging
 ============================================================================================================ */
 
+bool exec_i40=false;
+bool log_i41=true;
+bool log_i50=false;
+bool log_i51=false;
 
 #include "Arduino.h"
 
@@ -178,7 +198,7 @@ void setup() {
 	//Serial.begin(115200);
 	Serial.begin(115200);
 	delay(500);
-	Serial.println("robotServos v1.50");
+	Serial.println("robotServos v1.56");
 
 	pinMode(LED_BUILTIN, OUTPUT);
 
@@ -186,13 +206,24 @@ void setup() {
 	// this is run on both arduinos so assign pins 40..46 on both arduinos to power control only
 	for (int powerGroupIndex = 0; powerGroupIndex < NUMBER_OF_POWER_PINS; powerGroupIndex++) {
 
-		// ATTENTION: servo board did not work with 6V power supply, connect board vcc to arduino due 5v!
+		// ATTENTION: relais board did not work with 6V power supply, connect board vcc to arduino due 5v!
 		digitalWrite(powerGroup[powerGroupIndex].powerPin, SERVO_POWER_OFF);		// should switch relais off (apply before setting pinmode!)
 		pinMode(powerGroup[powerGroupIndex].powerPin, OUTPUT);
-		powerGroup[powerGroupIndex].powerOn = false;
 	}
 	delay(1000);
 
+	if (exec_i40) {
+		// set each powergroup on for 1 sec in setup
+		for (int powerGroupIndex = 0; powerGroupIndex < NUMBER_OF_POWER_PINS; powerGroupIndex++) {
+
+			Serial.print("i40 powerPin ON:  "); Serial.println(powerGroup[powerGroupIndex].powerPin);
+			digitalWrite(powerGroup[powerGroupIndex].powerPin, SERVO_POWER_ON);		// test power on
+			delay(1000);
+			Serial.print("i40 powerPin OFF: "); Serial.println(powerGroup[powerGroupIndex].powerPin);
+			digitalWrite(powerGroup[powerGroupIndex].powerPin, SERVO_POWER_OFF);	// test power off
+			powerGroup[powerGroupIndex].powerOn = false;		
+		}
+	}
 }
 
 
@@ -214,10 +245,16 @@ int servoIdOfPin(int pin) {
 // NOTE: powerOff is handled in loop
 void powerUpServoGroup(int servoId) {
 
-	// find powerGroupIndex of servo
+	if (log_i51) {
+		Serial.print("i51 powerUpServoGroup for servoId: ");Serial.print(servoId);
+		Serial.print(", powerPin: "); Serial.print(servoList[servoId].servoPowerPin);
+		Serial.println();
+	}
+
+	// find powerGroupIndex with same power pin as the assigned power pin of the servo
 	for (int powerGroupIndex=0; powerGroupIndex < NUMBER_OF_POWER_PINS; powerGroupIndex++)  {
 
-		if (powerGroup[powerGroupIndex].powerPin == servoList[servoId].powerPin) {
+		if (powerGroup[powerGroupIndex].powerPin == servoList[servoId].servoPowerPin) {
 
 			// check servo's powerGroup state
 			if (powerGroup[powerGroupIndex].powerOn) {
@@ -228,22 +265,24 @@ void powerUpServoGroup(int servoId) {
 				}
 			} else {
 
+				// activate power relais
+				pinMode(powerGroup[powerGroupIndex].powerPin, OUTPUT);
+				digitalWrite(powerGroup[powerGroupIndex].powerPin, SERVO_POWER_ON);
 				powerGroup[powerGroupIndex].powerOn = true;
 
 				// power up all servos in this power group
 				for (int s = 0; s < assignedServos; s++) {
-					if (servoList[s].powerPin == powerGroup[powerGroupIndex].powerPin) {
+					if (servoList[s].servoPowerPin == powerGroup[powerGroupIndex].powerPin) {
 						servoList[s].powerUp();
 					}
 				}
 
-				if (verbose) {
-					Serial.print("m34, servo group power on "); Serial.print(powerGroup[powerGroupIndex].powerGroupName);
+				if (log_i41) {
+					Serial.print("i41 servo group power on "); Serial.print(powerGroup[powerGroupIndex].powerGroupName);
 					Serial.print(" by "); Serial.print(servoList[servoId].servoName);
+					Serial.print(", powerPin: "), Serial.print(powerGroup[powerGroupIndex].powerPin);
 					Serial.println();
 				}
-				// activate power relais
-				digitalWrite(powerGroup[powerGroupIndex].powerPin, SERVO_POWER_ON);
 
 				delay(50);
 			}
@@ -257,7 +296,7 @@ bool hasPowerGroupActiveMovements(int powerGroupIndex) {
 	bool active = false;
 
 	for (int s = 0; s < assignedServos; s++) {
-		if (servoList[s].powerPin == powerGroup[powerGroupIndex].powerPin) {
+		if (servoList[s].servoPowerPin == powerGroup[powerGroupIndex].powerPin) {
 			if (servoList[s].inMoveRequest) {
 				active = true;
 			};
@@ -277,7 +316,11 @@ void setArduinoId() {
 	strtokIndx = strtok(NULL, ",");				// next item
 	arduinoId = atoi(strtokIndx);				// the arduino number
 
-	Serial.println("!A0");
+	// read pin 50, in lower arduino, COM7, index 0, it is connected to ground
+	pinMode(50, INPUT_PULLUP);
+	int signal = digitalRead(50);
+	// respond with either !A0 or !A1 as ready response
+	Serial.print("!A"); Serial.print(signal); Serial.println(",");
 }
 
 
@@ -313,23 +356,29 @@ void servoAssign() {
 	int lastPos = atoi(strtokIndx);     // the last known position of this servo (maintained by servoControl task)
 
 	strtokIndx = strtok(NULL, ",");		// position for next list item
-	int powerPin = atoi(strtokIndx);    // the power pin the servo is attached to
+	int servoPowerPin = atoi(strtokIndx);    // the power pin the servo is attached to
 
 	// check for pin already assigned
 	int servoId = servoIdOfPin(pin);
 
+	// append list of servoId / pin relation
 	if (servoId == -1) {				// pin not assigned yet
 		servoId = assignedServos;
 		assignedServos += 1;
 		servoIdOfPinList[servoId] = pin;
-
+		if (log_i51) {
+			Serial.print("i51 assigning servoId: "); Serial.print(servoId);
+			Serial.print(" to pin: "); Serial.print(pin);
+			Serial.println();
+		}
 	}
 
 	strcpy(servoList[servoId].servoName, servoName);
-	servoList[servoId].begin(pin, min, max, autoDetachMs, inverted, lastPos, powerPin);
+	servoList[servoId].begin(pin, min, max, autoDetachMs, inverted, lastPos, servoPowerPin);
 
-	if (servoList[servoId].thisServoVerbose) {
-		Serial.print("servo begin, servoId: "); Serial.print(servoId);
+	//if (servoList[servoId].thisServoVerbose) {
+	if (log_i51) {
+		Serial.print("i51 servo begin, servoId: "); Serial.print(servoId);
 		Serial.print(" , servoName: "); Serial.print(servoName);
 		Serial.print(", pin: "); Serial.print(pin);
 		Serial.print(", min: "); Serial.print(min);
@@ -337,7 +386,7 @@ void servoAssign() {
 		Serial.print(", autoDetachMs: "); Serial.print(autoDetachMs);
 		Serial.print(", inverted: "); Serial.print(inverted);
 		Serial.print(", lastPos: "); Serial.print(lastPos);
-		Serial.print(", powerPin: "); Serial.print(powerPin);
+		Serial.print(", servoPowerPin: "); Serial.print(servoPowerPin);
 		Serial.println();
 	}
 	servoList[servoId].detachServo(true);
@@ -349,44 +398,42 @@ void servoAssign() {
 // 1,<servoId>,<position>,<duration>
 void servoMoveTo() {
 
-	//Serial.println("servoMoveTo received");
-
 	char * strtokIndx;					// this is used by strtok() as an index
 
 	strtokIndx = strtok(msgCopyForParsing, ","); // first item
 	int cmd = atoi(strtokIndx);			// command moveTo = 1
-	//Serial.println("cmd");
+
 	strtokIndx = strtok(NULL, ",");		// position for next list item
-	int pin = atoi(strtokIndx);     // pin for move
-	//Serial.println("pin");
+	int pin = atoi(strtokIndx);    		// pin for move
+
 	strtokIndx = strtok(NULL, ",");		// position for next list item
 	int position = atoi(strtokIndx);    // requested position
-	//Serial.println("position");
+
 	strtokIndx = strtok(NULL, ",");		// position for next list item
 	int duration = atoi(strtokIndx);    // duration of move
-	//Serial.println("duration");
 
 	int servoId = servoIdOfPin(pin);
 
+	// check for servo known
 	if (servoId == -1) {
 		Serial.print("move request for unassigned servo, pin: "); Serial.print(pin); Serial.println();
 		return;
 	}
 
 	if (verbose) {
-		Serial.print("servoMoveTo, pin: "); Serial.print(pin);
-		Serial.print(", "); Serial.print(servoList[servoId].servoName);
+		Serial.print("i10 "); Serial.print(servoList[servoId].servoName); 
+		Serial.print(", servoMoveTo, pin: "); Serial.print(pin);
 		Serial.print(", pos: "); Serial.print(position);
 		Serial.print(", dur: "); Serial.print(duration);
 		Serial.println();
 	}
 	powerUpServoGroup(servoId);
 	
-	// check for servo already in move and stop it first
+	// check for servo already in move and if so stop it first
 	if (servoList[servoId].moving) {
 		servoList[servoId].stopServo();
 		if (servoList[servoId].thisServoVerbose) {
-			Serial.print("new moveTo position request while still moving, stop current move ");
+			Serial.print("w03 new moveTo position request while still moving, stop current move ");
 			Serial.print(servoList[servoId].servoName);
 			Serial.println();
 		}
@@ -425,7 +472,7 @@ void servoStopCmd() {
 
 void servoStopAllCmd() {
 
-	Serial.println("m21 servo stop all received");
+	Serial.println("i22 servo stop all received");
 
 	// stop all servos
 	for (int i = 0; i < assignedServos; i++) {
@@ -496,7 +543,7 @@ void setAutoDetach() {
 		servoList[servoId].autoDetachMs = newMs;
 
 		if (verbose) {
-			Serial.print("m16 new setAutoDetach value: "); Serial.print(newMs);
+			Serial.print("i20 new setAutoDetach value: "); Serial.print(newMs);
 			Serial.print(" for "); Serial.print(servoList[servoId].servoName);
 			Serial.println();
 		}
@@ -534,17 +581,17 @@ void setVerbose() {
 	char * strtokIndx; // this is used by strtok() as an index
 
 	strtokIndx = strtok(msgCopyForParsing, ","); // first item
-	int cmd = atoi(strtokIndx);			// convert this part to an integer
+	int cmd = atoi(strtokIndx);			// cmd
 
-	strtokIndx = strtok(NULL, ",");		// first item
-	int pin = atoi(strtokIndx);     // convert this part to an integer
+	strtokIndx = strtok(NULL, ",");		// next item
+	int pin = atoi(strtokIndx);     	// pin
 
-	strtokIndx = strtok(NULL, ",");		// first item
-	int state = atoi(strtokIndx);      // convert this part to an integer
+	strtokIndx = strtok(NULL, ",");		// next item
+	int state = atoi(strtokIndx);       // verbose state
 
 	int servoId = servoIdOfPin(pin);
 	if (servoId == -1) {
-		Serial.print("set verbose request for unassigned servo, pin: "); Serial.print(pin); Serial.println();
+		Serial.print("e04 set verbose request for unassigned servo, pin: "); Serial.print(pin); Serial.println();
 		return;
 	}
 
@@ -566,9 +613,10 @@ void pinHigh() {
 
 	while (strtokIndx != NULL) {				// for each pin in the list
 		int digitalPin = atoi(strtokIndx);      // pin number
-
+		
+		pinMode(digitalPin, OUTPUT);
 		digitalWrite(digitalPin, HIGH);
-		Serial.print("m26 digital pin set to HIGH: "); Serial.print(digitalPin); Serial.println();
+		Serial.print("i30 digital pin set to HIGH: "); Serial.print(digitalPin); Serial.println();
 
 		strtokIndx = strtok(NULL, ",");		// next item
 	}
@@ -585,20 +633,35 @@ void pinLow() {
 	while (strtokIndx != NULL) {		// list of pins to set low
 		int digitalPin = atoi(strtokIndx);     // convert this part to an integer
 
-		Serial.print("pin low request received for pin: "); Serial.print(digitalPin); Serial.println();
+		Serial.print("i31 digital pin set to LOW: "); Serial.print(digitalPin); Serial.println();
+		pinMode(digitalPin, OUTPUT);
 		digitalWrite(digitalPin, LOW);
 
 		strtokIndx = strtok(NULL, ",");		// next item
 	}
 }
 
+unsigned long lastLoopStartMillis;
+
 // the loop function runs over and over again until power down or reset
 void loop() {
-  
+
+	lastLoopStartMillis = millis();
+
 	// show loop frequency
 	ledToggle += 1;
-	if (ledToggle == 5000) digitalWrite(LED_BUILTIN, HIGH);
-	if (ledToggle == 10000) {
+	int highMillis;
+	int lowMillis;
+	if (arduinoId == 0) {
+		highMillis = 50;
+		lowMillis = 200;
+	}
+	else {
+		highMillis = 150;
+		lowMillis = 200;
+	}
+	if (ledToggle == highMillis) digitalWrite(LED_BUILTIN, HIGH);
+	if (ledToggle == lowMillis) {
 		digitalWrite(LED_BUILTIN, LOW);
 		//Serial.print("loop 10000, millis"); Serial.println(millis());
 		ledToggle = 0;
@@ -614,14 +677,15 @@ void loop() {
 	for (int powerGroupIndex=0; powerGroupIndex < NUMBER_OF_POWER_PINS; powerGroupIndex++) {
 		if (powerGroup[powerGroupIndex].powerOn) {
 			if (!hasPowerGroupActiveMovements(powerGroupIndex)) {
-				int arduinoPin = powerGroup[powerGroupIndex].powerPin;
-				digitalWrite(arduinoPin, SERVO_POWER_OFF);
+				digitalWrite(powerGroup[powerGroupIndex].powerPin, SERVO_POWER_OFF);
 				powerGroup[powerGroupIndex].powerOn = false;
-				Serial.print("m35, servo group powered off "); Serial.print(powerGroup[powerGroupIndex].powerGroupName); Serial.println();
+				if (log_i41) {
+					Serial.print("i41, servo group powered off "); Serial.print(powerGroup[powerGroupIndex].powerGroupName); Serial.println();
+				}
 
 				// detach servos in this power group
 				for (int s = 0; s < assignedServos; s++) {
-					if (servoList[s].powerPin == powerGroup[powerGroupIndex].powerPin) {
+					if (servoList[s].servoPowerPin == powerGroup[powerGroupIndex].powerPin) {
 						servoList[s].detachServo(true);		// force detach
 					}
 				}
@@ -632,12 +696,8 @@ void loop() {
 
 	mode = checkCommand();
 
-	if (verbose && mode != 'x') {
-		Serial.print("m05 ");
-		Serial.print(millis());
-		Serial.print(", ");
-		Serial.print(mode);
-		Serial.print(", ");
+	if (log_i50 && mode != 'x') {
+		Serial.print("i50 ");
 		Serial.print(msgCopyForParsing);
 		Serial.println();
 	}
@@ -648,8 +708,8 @@ void loop() {
 		break;
 
 	case 'i':	// reply with ready message
-		setArduinoId();
 		Serial.println("request for !A0 received");
+		setArduinoId();
 		break;
 
 	case '0':	// assign <servo>,<pin>,<min>,<max>
@@ -692,5 +752,12 @@ void loop() {
 		pinLow();
 		break;
 
+	default:
+		Serial.print("unknown mode: <"); Serial.print(mode); Serial.println(">");
+	}
+
+	// avoid looping too fast
+	while ((millis() - lastLoopStartMillis) < 10) {
+		delay(1);
 	}
 }
