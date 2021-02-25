@@ -4,6 +4,8 @@
 #include <math.h>
 #include "writeMessages.h"
 
+bool log_i21 = true;
+
 // set up a servo with speed control
 void Mai3Servo::begin(int servoPin, int servoMin, int servoMax, int servoAutoDetachMs, bool servoInverted, int servoLastPos, int powerPin) {
 
@@ -41,20 +43,20 @@ void Mai3Servo::stopServo() {
 	numIncrements = 0;		// this will stop writing new positions to the servo
 	arrivedMillis = millis();
 	lastPosition = int(nextPos);	// the last write position for the servo (might however not be the actual position as we have no feedback from servo)
-	if (verbose) {
+	if (log_i21) {
 		Serial.print("i21 servo stop received, ");
 		Serial.print(servoName);
 		Serial.print(", lastPosition: ");
 		Serial.print(lastPosition);
 		Serial.println();
 	}
-	sendServoStatus(pin, lastPosition, assigned, moving, servo.attached(), autoDetachMs, thisServoVerbose);
+	sendServoStatus(pin, lastPosition, assigned, moving, servo.attached(), autoDetachMs, thisServoVerbose, true);
 	loggedLastPos = lastPosition;
 	lastStatusUpdate = millis();
 }
 
 
-// only update servoPosition without moving
+// only update servoPosition, do not move the servo
 void Mai3Servo::setLastPosition(int newLastPosition) {
 	lastPosition = newLastPosition;
 }
@@ -123,7 +125,8 @@ void Mai3Servo::moveTo(int targetPos, int duration) {
 
 	// encountered problems (power off of group) when multiple request
 	// came in sequence and arrivedMillis was not set, causing power group to get powered off
-	arrivedMillis = millis() + duration;
+	startMillis = millis();		// for realtime log
+	//arrivedMillis = millis() + duration;
 	inMoveRequest = true;
 
 	if (targetPos == lastPosition ) {
@@ -134,6 +137,8 @@ void Mai3Servo::moveTo(int targetPos, int duration) {
 			Serial.print(servoName);
 			Serial.println();
 		}
+		// send target reached message to controller
+		sendServoStatus(pin, lastPosition, assigned, moving, servo.attached(), autoDetachMs > 0, thisServoVerbose, true);
 		return;
 	}
 
@@ -146,7 +151,7 @@ void Mai3Servo::moveTo(int targetPos, int duration) {
 	lastStatusUpdate = millis();
 
 	if (thisServoVerbose) {
-		Serial.print("i10 ");
+		Serial.print("v01 ");
 		Serial.print(servoName);
 		Serial.print(", a"); Serial.print(arduinoId);
 		Serial.print(", moveTo"); 
@@ -163,6 +168,11 @@ void Mai3Servo::moveTo(int targetPos, int duration) {
 
 // inverted flag is only treated here, do not include it in position calculation
 void Mai3Servo::writeServoPosition(int position, bool inverted) {
+
+	if (thisServoVerbose)  {
+		Serial.print(millis()-startMillis); Serial.print("ms ");
+		Serial.print("writeServoPosition: "), Serial.print(position); Serial.println();
+	}
 
 	if (inverted) {
 		servo.write(180 - position);
@@ -213,15 +223,9 @@ void Mai3Servo::update()
 		return;
 	}
 
-    if(millis() - lastMillis < 20) {  // update 50 times per second
-		delayMicroseconds(10);
-        return;
-    }
-	lastMillis = millis();
-
 	// send current position and status over serial with limited interval
 	if ((int(nextPos) != loggedLastPos) && (millis() - lastStatusUpdate > 90)) {
-		sendServoStatus(pin, nextPos, assigned, moving, servo.attached(), autoDetachMs, thisServoVerbose);
+		sendServoStatus(pin, nextPos, assigned, moving, servo.attached(), autoDetachMs, thisServoVerbose, false);
 		loggedLastPos = int(nextPos);
 		lastStatusUpdate = millis();
 
@@ -244,7 +248,7 @@ void Mai3Servo::update()
 			Serial.print(", position: "); Serial.print(lastPosition);
 			Serial.println();
 		}
-		sendServoStatus(pin, lastPosition, assigned, moving, servo.attached(), autoDetachMs > 0, thisServoVerbose);
+		sendServoStatus(pin, lastPosition, assigned, moving, servo.attached(), autoDetachMs > 0, thisServoVerbose, true);
 
 		return;
 	}
@@ -253,7 +257,7 @@ void Mai3Servo::update()
 	if (inMoveRequest && (autoDetachMs > 0)) {
 
 		// check for arrivedMillis in the future, do nothing if so
-		if (arrivedMillis > millis()) return;
+		//if (arrivedMillis > millis()) return;
 		/* {
 			
 			if (thisServoVerbose) {
@@ -277,7 +281,7 @@ void Mai3Servo::update()
 				Serial.print(" ms after arrived: "); Serial.print((millis()-arrivedMillis));
 				Serial.println();
 			}
-			sendServoStatus(pin, nextPos, assigned, moving, servo.attached(), autoDetachMs, thisServoVerbose);
+			//sendServoStatus(pin, nextPos, assigned, moving, servo.attached(), autoDetachMs, thisServoVerbose);
 			return;
 		}
 	}
@@ -285,6 +289,10 @@ void Mai3Servo::update()
 
 	// if still in move set next servo partial target position
 	if (numIncrements > 0) {
+		if (thisServoVerbose) {
+			Serial.print("numIncrements: "); Serial.print(numIncrements);
+			Serial.print(", nextPos: "); Serial.print(nextPos); Serial.println();
+		}
 		lastPosition = round(nextPos);		// set last position as the assumed reached position
 		nextPos += increment;				// ... and nextPos as the next step position
 		numIncrements -= 1;

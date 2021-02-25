@@ -138,12 +138,16 @@ i41 powergroup ON/OFF
 
 i50 log of incoming messages
 i51 temporary logs for debugging
+
+// logs for servos with servoVerbose set
+v01 move to request
 ============================================================================================================ */
 
 bool exec_i40=false;
 bool log_i41=true;
-bool log_i50=false;
-bool log_i51=false;
+bool log_i10=true;
+bool log_i50=true;
+bool log_i51=true;
 
 #include "Arduino.h"
 
@@ -191,6 +195,10 @@ char msg[100];
 int arduinoId = 0;
 int assignedServos = 0;
 
+int highMillis;
+int lowMillis;
+unsigned long lastServoUpdateMillis = millis();
+unsigned long ledToggleMillis = millis();
 
 // the setup function runs once when you press reset, power the board or open the serial connection
 void setup() {
@@ -198,7 +206,7 @@ void setup() {
 	//Serial.begin(115200);
 	Serial.begin(115200);
 	delay(500);
-	Serial.println("robotServos v1.56");
+	Serial.println("robotServos v1.60");
 
 	pinMode(LED_BUILTIN, OUTPUT);
 
@@ -211,6 +219,16 @@ void setup() {
 		pinMode(powerGroup[powerGroupIndex].powerPin, OUTPUT);
 	}
 	delay(1000);
+
+	// show different loop frequency on arduinos
+	if (arduinoId == 0) {
+		highMillis = 50;
+		lowMillis = 200;
+	}
+	else {
+		highMillis = 200;
+		lowMillis = 50;
+	}
 
 	if (exec_i40) {
 		// set each powergroup on for 1 sec in setup
@@ -241,15 +259,9 @@ int servoIdOfPin(int pin) {
 
 // any move request for a servo has to check for current servo group power
 // if the servo group power is currently off, all servos in the group
-// need to be set to "lastPosition" and  need to be attached
+// need to be set to their "lastPosition" and  need to be attached
 // NOTE: powerOff is handled in loop
 void powerUpServoGroup(int servoId) {
-
-	if (log_i51) {
-		Serial.print("i51 powerUpServoGroup for servoId: ");Serial.print(servoId);
-		Serial.print(", powerPin: "); Serial.print(servoList[servoId].servoPowerPin);
-		Serial.println();
-	}
 
 	// find powerGroupIndex with same power pin as the assigned power pin of the servo
 	for (int powerGroupIndex=0; powerGroupIndex < NUMBER_OF_POWER_PINS; powerGroupIndex++)  {
@@ -266,6 +278,11 @@ void powerUpServoGroup(int servoId) {
 			} else {
 
 				// activate power relais
+				if (log_i51) {
+					Serial.print("i51 powerUpServoGroup for servoId: ");Serial.print(servoId);
+					Serial.print(", powerPin: "); Serial.print(servoList[servoId].servoPowerPin);
+					Serial.println();
+				}
 				pinMode(powerGroup[powerGroupIndex].powerPin, OUTPUT);
 				digitalWrite(powerGroup[powerGroupIndex].powerPin, SERVO_POWER_ON);
 				powerGroup[powerGroupIndex].powerOn = true;
@@ -275,13 +292,6 @@ void powerUpServoGroup(int servoId) {
 					if (servoList[s].servoPowerPin == powerGroup[powerGroupIndex].powerPin) {
 						servoList[s].powerUp();
 					}
-				}
-
-				if (log_i41) {
-					Serial.print("i41 servo group power on "); Serial.print(powerGroup[powerGroupIndex].powerGroupName);
-					Serial.print(" by "); Serial.print(servoList[servoId].servoName);
-					Serial.print(", powerPin: "), Serial.print(powerGroup[powerGroupIndex].powerPin);
-					Serial.println();
 				}
 
 				delay(50);
@@ -325,7 +335,7 @@ void setArduinoId() {
 
 
 // servo assign
-// 0,<servoId>,<pin>,<min>,<max>,<autoDetachMs>,<lastPos>
+// 0,<servoName>,<pin>,<min>,<max>,<autoDetachMs>,<inverted>,<lastPos>,<servoPowerPin>
 void servoAssign() {
 
 	char * strtokIndx; // this is used by strtok() as an index
@@ -390,12 +400,12 @@ void servoAssign() {
 		Serial.println();
 	}
 	servoList[servoId].detachServo(true);
-	sendServoStatus(pin, lastPos, true, false, true, autoDetachMs, verbose);
+	sendServoStatus(pin, lastPos, true, false, true, autoDetachMs, verbose, true);
 
 }
 
 // servo move request
-// 1,<servoId>,<position>,<duration>
+// 1,<pin>,<position>,<duration>
 void servoMoveTo() {
 
 	char * strtokIndx;					// this is used by strtok() as an index
@@ -420,7 +430,7 @@ void servoMoveTo() {
 		return;
 	}
 
-	if (verbose) {
+	if (log_i10) {
 		Serial.print("i10 "); Serial.print(servoList[servoId].servoName); 
 		Serial.print(", servoMoveTo, pin: "); Serial.print(pin);
 		Serial.print(", pos: "); Serial.print(position);
@@ -513,7 +523,7 @@ void reportServoStatus() {
 		Serial.print(", attached: "); Serial.print(attached);
 		Serial.println();
 	}
-	sendServoStatus(pin, position, assigned, isMoving, attached, autoDetachMs, verbose);
+	sendServoStatus(pin, position, assigned, isMoving, attached, autoDetachMs, verbose, false);
 }
 
 
@@ -641,39 +651,35 @@ void pinLow() {
 	}
 }
 
-unsigned long lastLoopStartMillis;
+
 
 // the loop function runs over and over again until power down or reset
 void loop() {
 
-	lastLoopStartMillis = millis();
-
-	// show loop frequency
-	ledToggle += 1;
-	int highMillis;
-	int lowMillis;
-	if (arduinoId == 0) {
-		highMillis = 50;
-		lowMillis = 200;
+	if (millis() - ledToggleMillis < highMillis) {
+		digitalWrite(LED_BUILTIN, HIGH);
 	}
 	else {
-		highMillis = 150;
-		lowMillis = 200;
-	}
-	if (ledToggle == highMillis) digitalWrite(LED_BUILTIN, HIGH);
-	if (ledToggle == lowMillis) {
 		digitalWrite(LED_BUILTIN, LOW);
-		//Serial.print("loop 10000, millis"); Serial.println(millis());
-		ledToggle = 0;
+	}
+	if ((millis() - ledToggleMillis) > (highMillis + lowMillis)) {
+		ledToggleMillis = millis();
 	}
 
-	///////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////
 	// for currently moving servos request the next incremental position
-	for (int i = 0; i < assignedServos; i++) {
-		servoList[i].update();
+	/////////////////////////////////////////////////////////////////////
+	// update servos max 50 times per second
+	if ((millis() - lastServoUpdateMillis) >= 20) {
+		for (int i = 0; i < assignedServos; i++) {
+			servoList[i].update();
+		}
+		lastServoUpdateMillis = millis();
 	}
 
+	/////////////////////////////////////////////////////////////////////
 	// for currently activated power groups check for possible power off
+	/////////////////////////////////////////////////////////////////////
 	for (int powerGroupIndex=0; powerGroupIndex < NUMBER_OF_POWER_PINS; powerGroupIndex++) {
 		if (powerGroup[powerGroupIndex].powerOn) {
 			if (!hasPowerGroupActiveMovements(powerGroupIndex)) {
@@ -692,8 +698,10 @@ void loop() {
 			}
 		}
 	}
-	///////////////////////////////////////////////
 
+	///////////////////////////////////////////////
+	// check for new requests over serial
+	//////////////////////////////////////////////
 	mode = checkCommand();
 
 	if (log_i50 && mode != 'x') {
@@ -754,10 +762,5 @@ void loop() {
 
 	default:
 		Serial.print("unknown mode: <"); Serial.print(mode); Serial.println(">");
-	}
-
-	// avoid looping too fast
-	while ((millis() - lastLoopStartMillis) < 10) {
-		delay(1);
 	}
 }

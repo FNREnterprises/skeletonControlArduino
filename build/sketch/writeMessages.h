@@ -6,4 +6,4 @@
 
 extern char msg[100];
 
-void sendServoStatus(int pin, int pos, bool assigned, bool isRunning, bool attached, bool autoDetach, bool verbose);
+void sendServoStatus(int pin, int pos, bool assigned, bool isRunning, bool attached, bool autoDetach, bool verbose, bool targetReached);

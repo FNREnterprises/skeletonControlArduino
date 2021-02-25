@@ -17,7 +17,7 @@ private:
 	int loggedLastPos;
 	int numIncrements;    // number of 20 milli steps
 	float increment;
-    unsigned long lastMillis; // millis of last action
+    unsigned long startMillis; // millis of moveTo initiated
 	unsigned long lastStatusUpdate;  // millis of last status update
 	int min;
 	int max;
