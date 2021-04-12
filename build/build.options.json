@@ -1,12 +1,12 @@
 {
   "additionalFiles": "..,..,..,..,..,..,..",
-  "builtInLibrariesFolders": "D:\\Projekte\\InMoov\\Arduino\\arduino-1.8.13\\libraries",
-  "builtInToolsFolders": "D:\\Projekte\\InMoov\\Arduino\\arduino-1.8.13\\tools-builder,D:\\Projekte\\InMoov\\Arduino\\arduino-1.8.13\\hardware\\tools\\avr,C:\\Users\\maier\\AppData\\Local\\Arduino15\\packages",
+  "builtInLibrariesFolders": "/home/marvin/Downloads/arduino-1.8.13/libraries",
+  "builtInToolsFolders": "/home/marvin/Downloads/arduino-1.8.13/tools-builder,/home/marvin/Downloads/arduino-1.8.13/hardware/tools/avr,/home/marvin/.arduino15/packages",
   "compiler.optimization_flags": "",
-  "customBuildProperties": "build.path=d:\\Projekte\\InMoov\\skeletonControlArduino\\build,build.warn_data_percentage=75,runtime.tools.arm-none-eabi-gcc.path=C:\\Users\\maier\\AppData\\Local\\Arduino15\\packages\\arduino\\tools\\arm-none-eabi-gcc\\4.8.3-2014q1,runtime.tools.arm-none-eabi-gcc-4.8.3-2014q1.path=C:\\Users\\maier\\AppData\\Local\\Arduino15\\packages\\arduino\\tools\\arm-none-eabi-gcc\\4.8.3-2014q1,runtime.tools.bossac.path=C:\\Users\\maier\\AppData\\Local\\Arduino15\\packages\\arduino\\tools\\bossac\\1.6.1-arduino,runtime.tools.bossac-1.6.1-arduino.path=C:\\Users\\maier\\AppData\\Local\\Arduino15\\packages\\arduino\\tools\\bossac\\1.6.1-arduino",
+  "customBuildProperties": "build.path=/home/marvin/skeletonControlArduino/build,build.warn_data_percentage=75,runtime.tools.arm-none-eabi-gcc.path=/home/marvin/.arduino15/packages/arduino/tools/arm-none-eabi-gcc/4.8.3-2014q1,runtime.tools.arm-none-eabi-gcc-4.8.3-2014q1.path=/home/marvin/.arduino15/packages/arduino/tools/arm-none-eabi-gcc/4.8.3-2014q1,runtime.tools.bossac.path=/home/marvin/.arduino15/packages/arduino/tools/bossac/1.6.1-arduino,runtime.tools.bossac-1.6.1-arduino.path=/home/marvin/.arduino15/packages/arduino/tools/bossac/1.6.1-arduino",
   "fqbn": "arduino:sam:arduino_due_x_dbg",
-  "hardwareFolders": "D:\\Projekte\\InMoov\\Arduino\\arduino-1.8.13\\hardware,C:\\Users\\maier\\AppData\\Local\\Arduino15\\packages",
-  "otherLibrariesFolders": "C:\\Users\\maier\\Documents\\Arduino\\libraries",
+  "hardwareFolders": "/home/marvin/Downloads/arduino-1.8.13/hardware,/home/marvin/.arduino15/packages",
+  "otherLibrariesFolders": "/home/marvin/Arduino/libraries",
   "runtime.ide.version": "10813",
-  "sketchLocation": "d:\\Projekte\\InMoov\\skeletonControlArduino\\skeletonControlArduino.ino"
+  "sketchLocation": "/home/marvin/skeletonControlArduino/skeletonControlArduino.ino"
 }

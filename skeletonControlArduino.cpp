@@ -1,4 +1,7 @@
 
+
+char version[10] = "v2.11";
+
 /*
  Name:		inmoovArduino.ino
  Created:	01.09.2018 13:59:51
@@ -176,14 +179,14 @@ typedef struct {
 } powerGroupType;
 
 powerGroupType powerGroup[NUMBER_OF_POWER_PINS] = {
-	{40, false, "IN1-leftArm"},
-	{42, false, "IN2-leftHand"},
-	{44, false, "IN3-rightArm"},
-	{46, false, "IN4-rightHand"},
-	{41, false, "IN5-head"},
-	{43, false, "IN6-torso"},
-	{45, false, "unused"},
-	{47, false, "unused"}
+	{14, false, "IN1-leftArm"},
+	{15, false, "IN2-leftHand"},
+	{16, false, "IN3-rightArm"},
+	{17, false, "IN4-rightHand"},
+	{18, false, "IN5-head"},
+	{19, false, "IN6-torso"},
+	{20, false, "unused"},
+	{20, false, "unused"}
 };
 
 char mode = 'x';
@@ -206,7 +209,22 @@ void setup() {
 	//Serial.begin(115200);
 	Serial.begin(115200);
 	delay(500);
-	Serial.println("robotServos v1.60");
+
+	// check for arduino Id
+	// Arduino 0 (left) has a connection of Pin 50 with Ground
+	// read pin 50, in left arduino it is connected to ground
+	pinMode(50, INPUT_PULLUP);
+	int signal = digitalRead(50);
+	if (signal == 0) {
+		arduinoId = 0;
+	}
+	else {
+		arduinoId = 1;
+	}	
+	// respond with either S0 or S1 as ready response
+	Serial.print("S"); Serial.print(arduinoId);
+	Serial.print(" skeletonControlArduino "); Serial.println(version);
+
 
 	pinMode(LED_BUILTIN, OUTPUT);
 
@@ -222,12 +240,12 @@ void setup() {
 
 	// show different loop frequency on arduinos
 	if (arduinoId == 0) {
-		highMillis = 50;
-		lowMillis = 200;
+		highMillis = 200;
+		lowMillis = 800;
 	}
 	else {
-		highMillis = 200;
-		lowMillis = 50;
+		highMillis = 800;
+		lowMillis = 200;
 	}
 
 	if (exec_i40) {
@@ -236,7 +254,7 @@ void setup() {
 
 			Serial.print("i40 powerPin ON:  "); Serial.println(powerGroup[powerGroupIndex].powerPin);
 			digitalWrite(powerGroup[powerGroupIndex].powerPin, SERVO_POWER_ON);		// test power on
-			delay(1000);
+			delay(2000);
 			Serial.print("i40 powerPin OFF: "); Serial.println(powerGroup[powerGroupIndex].powerPin);
 			digitalWrite(powerGroup[powerGroupIndex].powerPin, SERVO_POWER_OFF);	// test power off
 			powerGroup[powerGroupIndex].powerOn = false;		
@@ -313,24 +331,6 @@ bool hasPowerGroupActiveMovements(int powerGroupIndex) {
 		}
 	}
 	return active;
-}
-
-// arduinoId
-void setArduinoId() {
-
-	char* strtokIndx; // this is used by strtok() as an index
-
-	strtokIndx = strtok(msgCopyForParsing, ","); // first item
-	int cmd = atoi(strtokIndx);					 // command i
-
-	strtokIndx = strtok(NULL, ",");				// next item
-	arduinoId = atoi(strtokIndx);				// the arduino number
-
-	// read pin 50, in lower arduino, COM7, index 0, it is connected to ground
-	pinMode(50, INPUT_PULLUP);
-	int signal = digitalRead(50);
-	// respond with either !A0 or !A1 as ready response
-	Serial.print("!A"); Serial.print(signal); Serial.println(",");
 }
 
 
@@ -716,8 +716,7 @@ void loop() {
 		break;
 
 	case 'i':	// reply with ready message
-		Serial.println("request for !A0 received");
-		setArduinoId();
+		Serial.println("depricated request for arduinoId received");
 		break;
 
 	case '0':	// assign <servo>,<pin>,<min>,<max>

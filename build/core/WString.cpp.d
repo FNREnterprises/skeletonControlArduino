@@ -1,6 +1,6 @@
-d:\Projekte\InMoov\skeletonControlArduino\build\core\WString.cpp.o: \
- C:\Users\maier\AppData\Local\Arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\WString.cpp \
- C:\Users\maier\AppData\Local\Arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\WString.h \
- C:\Users\maier\AppData\Local\Arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino/avr/pgmspace.h \
- C:\Users\maier\AppData\Local\Arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\itoa.h \
- C:\Users\maier\AppData\Local\Arduino15\packages\arduino\hardware\sam\1.6.12\cores\arduino\avr/dtostrf.h
+/home/marvin/skeletonControlArduino/build/core/WString.cpp.o: \
+ /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/cores/arduino/WString.cpp \
+ /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/cores/arduino/WString.h \
+ /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/cores/arduino/avr/pgmspace.h \
+ /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/cores/arduino/itoa.h \
+ /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/cores/arduino/avr/dtostrf.h

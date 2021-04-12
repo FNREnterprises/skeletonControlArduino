@@ -1,4 +1,4 @@
 #include <Arduino.h>
-#line 1 "d:\\Projekte\\InMoov\\skeletonControlArduino\\skeletonControlArduino.ino"
+#line 1 "/home/marvin/skeletonControlArduino/skeletonControlArduino.ino"
 // dummy stub to make arduino IDE work
 
