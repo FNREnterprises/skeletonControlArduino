@@ -1,6 +1,6 @@
 
 
-char version[10] = "v2.11";
+char version[10] = "v2.14";
 
 /*
  Name:		inmoovArduino.ino
@@ -151,6 +151,7 @@ bool log_i41=true;
 bool log_i10=true;
 bool log_i50=true;
 bool log_i51=true;
+bool log_i52=true;	// feedback definitions
 
 #include "Arduino.h"
 
@@ -297,8 +298,8 @@ void powerUpServoGroup(int servoId) {
 
 				// activate power relais
 				if (log_i51) {
-					Serial.print("i51 powerUpServoGroup for servoId: ");Serial.print(servoId);
-					Serial.print(", powerPin: "); Serial.print(servoList[servoId].servoPowerPin);
+					Serial.print("i51 powerUpServoGroup for servo: ");Serial.print(servoList[servoId].servoName);
+					Serial.print(", powerGroup: "); Serial.print(powerGroup[powerGroupIndex].powerGroupName);
 					Serial.println();
 				}
 				pinMode(powerGroup[powerGroupIndex].powerPin, OUTPUT);
@@ -403,6 +404,79 @@ void servoAssign() {
 	sendServoStatus(pin, lastPos, true, false, true, autoDetachMs, verbose, true);
 
 }
+
+// servo feedback definitions
+// 8,pin,{i2cMultiplexerAddress},{i2cMultiplexerChannel},"
+// speedACalcType, speedAFactor,speedAOffset
+// speedBCalcType,speedBFactor,speedBOffset
+// degreesFactor,servoSpeedRange
+
+void feedbackDefinitions() {
+
+	char * strtokIndx; // this is used by strtok() as an index
+
+	strtokIndx = strtok(msgCopyForParsing, ","); // first item
+	int cmd = atoi(strtokIndx);			// cmd for feedback definitions = 8
+
+	strtokIndx = strtok(NULL, ",");		// position for next list item
+	int pin = atoi(strtokIndx);			// pin number for lookup of servoId
+
+	int servoId = servoIdOfPin(pin);
+
+	// check for servo known
+	if (servoId == -1) {
+		Serial.print("feedback definitions for unassigned servo, pin: "); Serial.print(pin); Serial.println();
+		return;
+	}
+	servoList[servoId].isFeedbackServo = true;
+
+	strtokIndx = strtok(NULL, ",");		// position for next list item
+	servoList[servoId].i2cMultiplexerAddress = atoi(strtokIndx);	// multiplexer address for reading magnet position
+
+	strtokIndx = strtok(NULL, ",");		// position for next list item
+	servoList[servoId].i2cMultiplexerChannel = atoi(strtokIndx);   // channel for reading magnet p this servo
+
+	strtokIndx = strtok(NULL, ",");		// position for next list item
+	servoList[servoId].speedACalcType = atoi(strtokIndx);
+
+	strtokIndx = strtok(NULL, ",");		// position for next list item
+	servoList[servoId].speedAFactor = atof(strtokIndx);
+
+	strtokIndx = strtok(NULL, ",");		// position for next list item
+	servoList[servoId].speedAOffset = atof(strtokIndx);
+
+	strtokIndx = strtok(NULL, ",");		// position for next list item
+	servoList[servoId].speedBCalcType = atoi(strtokIndx);
+
+	strtokIndx = strtok(NULL, ",");		// position for next list item
+	servoList[servoId].speedBFactor = atof(strtokIndx);
+
+	strtokIndx = strtok(NULL, ",");		// position for next list item
+	servoList[servoId].speedBOffset = atof(strtokIndx);
+
+	strtokIndx = strtok(NULL, ",");		// position for next list item
+	servoList[servoId].degreesFactor = atof(strtokIndx);
+
+	strtokIndx = strtok(NULL, ",");		// position for next list item
+	servoList[servoId].servoSpeedRange = atoi(strtokIndx);
+
+	//if (servoList[servoId].thisServoVerbose) {
+	if (log_i52) {
+		Serial.print("i52 feedback definitions, servoId: "); Serial.print(servoId);
+		Serial.print(", i2cMultiplexerAddress: "); Serial.print(servoList[servoId].i2cMultiplexerAddress);
+		Serial.print(", i2cMultiplexerChannel: "); Serial.print(servoList[servoId].i2cMultiplexerChannel);
+		Serial.print(", speedACalcType: "); Serial.print(servoList[servoId].speedACalcType);
+		Serial.print(", speedAFactor: "); Serial.print(servoList[servoId].speedAFactor);
+		Serial.print(", speedAOffset: "); Serial.print(servoList[servoId].speedAOffset);
+		Serial.print(", speedBCalcType: "); Serial.print(servoList[servoId].speedBCalcType);
+		Serial.print(", speedBFactor: "); Serial.print(servoList[servoId].speedBFactor);
+		Serial.print(", speedBOffset: "); Serial.print(servoList[servoId].speedBOffset);
+		Serial.print(", degreeFactor: "); Serial.print(servoList[servoId].degreesFactor);
+		Serial.print(", servoSpeedRange: "); Serial.print(servoList[servoId].servoSpeedRange);
+		Serial.println();
+	}
+}
+
 
 // servo move request
 // 1,<pin>,<position>,<duration>
@@ -749,6 +823,10 @@ void loop() {
 
 	case '7':	// change log level for servo
 		setVerbose();
+		break;
+
+	case '8':	// servo feedback definitions
+		setFeedbackDeeefinitions();
 		break;
 
 	case 'h':	// set pins high

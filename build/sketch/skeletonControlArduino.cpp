@@ -1,6 +1,6 @@
 
 
-char version[10] = "v2.11";
+char version[10] = "v2.14";
 
 /*
  Name:		inmoovArduino.ino
@@ -240,12 +240,12 @@ void setup() {
 
 	// show different loop frequency on arduinos
 	if (arduinoId == 0) {
-		highMillis = 100;
-		lowMillis = 500;
+		highMillis = 200;
+		lowMillis = 800;
 	}
 	else {
-		highMillis = 500;
-		lowMillis = 100;
+		highMillis = 800;
+		lowMillis = 200;
 	}
 
 	if (exec_i40) {
@@ -297,8 +297,8 @@ void powerUpServoGroup(int servoId) {
 
 				// activate power relais
 				if (log_i51) {
-					Serial.print("i51 powerUpServoGroup for servoId: ");Serial.print(servoId);
-					Serial.print(", powerPin: "); Serial.print(servoList[servoId].servoPowerPin);
+					Serial.print("i51 powerUpServoGroup for servo: ");Serial.print(servoList[servoId].servoName);
+					Serial.print(", powerGroup: "); Serial.print(powerGroup[powerGroupIndex].powerGroupName);
 					Serial.println();
 				}
 				pinMode(powerGroup[powerGroupIndex].powerPin, OUTPUT);

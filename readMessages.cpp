@@ -10,7 +10,7 @@ byte ndx = 0;
 bool log_r0 = false;
 
 // fill buffer with message
-// set newData flag to true, data is processed in inmoovArduino
+// when newData flag is set to true, data is processed in inmoovArduino
 
 void recvWithEndMarker() {
 	char rc;
@@ -50,8 +50,10 @@ int checkCommand() {
 
 		char mode = receivedChars[0];
 		strncpy(msgCopyForParsing, receivedChars, numChars);
+		msgCopyForParsing[numChars] = '\n';
 		if (log_r0) {
-			Serial.print("r00 received chars: "); Serial.print(receivedChars); Serial.println();
+			Serial.print("r00 received chars: "); Serial.print(receivedChars);
+			Serial.print(", numChars: "), Serial.print(numChars); Serial.println();
 			Serial.print("r01 msgCopyForParsing: "); Serial.print(msgCopyForParsing); Serial.println();
 		}
 		newData = false;

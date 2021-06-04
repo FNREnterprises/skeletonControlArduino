@@ -418,7 +418,8 @@
                 "__ULACCUM_FBIT__=32",
                 "__QQ_IBIT__=0",
                 "__ATOMIC_ACQ_REL=4",
-                "__ATOMIC_RELEASE=3"
+                "__ATOMIC_RELEASE=3",
+                "USBCON"
             ]
         }
     ]

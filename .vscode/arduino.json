@@ -2,5 +2,5 @@
     "sketch": "skeletonControlArduino.ino",
     "board": "arduino:sam:arduino_due_x_dbg",
     "output": "build",
-    "port": "/dev/ttyACM2"
+    "port": "/dev/ttyACM1"
 }
