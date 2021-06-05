@@ -1,4 +1,4 @@
-/home/marvin/skeletonControlArduino/build/core/Print.cpp.o: \
+/home/marvin/InMoov/skeletonControlArduino/build/core/Print.cpp.o: \
  /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/cores/arduino/Print.cpp \
  /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/cores/arduino/Arduino.h \
  /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/cores/arduino/avr/pgmspace.h \

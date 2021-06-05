@@ -1,5 +1,5 @@
-/home/marvin/skeletonControlArduino/build/sketch/skeletonControlArduino.cpp.o: \
- /home/marvin/skeletonControlArduino/build/sketch/skeletonControlArduino.cpp \
+/home/marvin/InMoov/skeletonControlArduino/build/sketch/skeletonControlArduino.cpp.o: \
+ /home/marvin/InMoov/skeletonControlArduino/build/sketch/skeletonControlArduino.cpp \
  /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/cores/arduino/Arduino.h \
  /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/cores/arduino/avr/pgmspace.h \
  /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/cores/arduino/avr/interrupt.h \
@@ -139,6 +139,6 @@
  /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/system/libsam/include/twi.h \
  /home/marvin/Downloads/arduino-1.8.13/libraries/Servo/src/Servo.h \
  /home/marvin/Downloads/arduino-1.8.13/libraries/Servo/src/sam/ServoTimers.h \
- /home/marvin/skeletonControlArduino/build/sketch/Mai3Servo.h \
- /home/marvin/skeletonControlArduino/build/sketch/readMessages.h \
- /home/marvin/skeletonControlArduino/build/sketch/writeMessages.h
+ /home/marvin/InMoov/skeletonControlArduino/build/sketch/Mai3Servo.h \
+ /home/marvin/InMoov/skeletonControlArduino/build/sketch/readMessages.h \
+ /home/marvin/InMoov/skeletonControlArduino/build/sketch/writeMessages.h

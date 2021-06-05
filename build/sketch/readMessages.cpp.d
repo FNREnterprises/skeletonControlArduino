@@ -1,5 +1,5 @@
-/home/marvin/skeletonControlArduino/build/sketch/readMessages.cpp.o: \
- /home/marvin/skeletonControlArduino/build/sketch/readMessages.cpp \
+/home/marvin/InMoov/skeletonControlArduino/build/sketch/readMessages.cpp.o: \
+ /home/marvin/InMoov/skeletonControlArduino/build/sketch/readMessages.cpp \
  /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/cores/arduino/Arduino.h \
  /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/cores/arduino/avr/pgmspace.h \
  /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/cores/arduino/avr/interrupt.h \
@@ -135,4 +135,4 @@
  /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/cores/arduino/USB/USBAPI.h \
  /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/cores/arduino/RingBuffer.h \
  /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/cores/arduino/Stream.h \
- /home/marvin/skeletonControlArduino/build/sketch/readMessages.h
+ /home/marvin/InMoov/skeletonControlArduino/build/sketch/readMessages.h

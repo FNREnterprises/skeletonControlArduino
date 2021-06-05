@@ -1,4 +1,4 @@
-/home/marvin/skeletonControlArduino/build/core/USB/PluggableUSB.cpp.o: \
+/home/marvin/InMoov/skeletonControlArduino/build/core/USB/PluggableUSB.cpp.o: \
  /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/cores/arduino/USB/PluggableUSB.cpp \
  /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/cores/arduino/USB/USBAPI.h \
  /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/cores/arduino/RingBuffer.h \

@@ -1,5 +1,5 @@
-/home/marvin/skeletonControlArduino/build/sketch/skeletonControlArduino.ino.cpp.o: \
- /home/marvin/skeletonControlArduino/build/sketch/skeletonControlArduino.ino.cpp \
+/home/marvin/InMoov/skeletonControlArduino/build/sketch/skeletonControlArduino.ino.cpp.o: \
+ /home/marvin/InMoov/skeletonControlArduino/build/sketch/skeletonControlArduino.ino.cpp \
  /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/cores/arduino/Arduino.h \
  /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/cores/arduino/avr/pgmspace.h \
  /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/cores/arduino/avr/interrupt.h \

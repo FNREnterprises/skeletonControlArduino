@@ -1,4 +1,4 @@
-/home/marvin/skeletonControlArduino/build/core/cortex_handlers.c.o: \
+/home/marvin/InMoov/skeletonControlArduino/build/core/cortex_handlers.c.o: \
  /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/cores/arduino/cortex_handlers.c \
  /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/cores/arduino/Arduino.h \
  /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/cores/arduino/avr/pgmspace.h \

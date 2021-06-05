@@ -1,12 +1,8 @@
-/home/marvin/InMoov/skeletonControlArduino/build/core/WInterrupts.c.o: \
- /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/cores/arduino/WInterrupts.c \
- /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/cores/arduino/WInterrupts.h \
- /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/cores/arduino/Arduino.h \
- /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/cores/arduino/avr/pgmspace.h \
- /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/cores/arduino/avr/interrupt.h \
- /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/cores/arduino/binary.h \
- /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/cores/arduino/itoa.h \
- /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/system/libsam/chip.h \
+/home/marvin/InMoov/skeletonControlArduino/build/sketch/feedback.cpp.o: \
+ /home/marvin/InMoov/skeletonControlArduino/build/sketch/feedback.cpp \
+ /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/libraries/Wire/src/Wire.h \
+ /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/system/libsam/include/twi.h \
+ /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/system/libsam/include/../chip.h \
  /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/system/CMSIS/Device/ATMEL/sam.h \
  /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/system/CMSIS/Device/ATMEL/sam3.h \
  /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/system/CMSIS/Device/ATMEL/sam3xa/include/sam3xa.h \
@@ -82,41 +78,64 @@
  /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/system/CMSIS/Device/ATMEL/sam3xa/include/instance/instance_rtc.h \
  /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/system/CMSIS/Device/ATMEL/sam3xa/include/instance/instance_gpbr.h \
  /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/system/CMSIS/Device/ATMEL/sam3xa/include/pio/pio_sam3x8e.h \
- /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/system/libsam/include/adc.h \
- /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/system/libsam/include/../chip.h \
- /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/system/libsam/include/dacc.h \
- /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/system/libsam/include/interrupt_sam_nvic.h \
- /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/system/libsam/include/efc.h \
- /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/system/libsam/include/gpbr.h \
- /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/system/libsam/include/pio.h \
- /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/system/libsam/include/pmc.h \
- /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/system/libsam/include/pwmc.h \
- /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/system/libsam/include/rstc.h \
- /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/system/libsam/include/rtc.h \
- /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/system/libsam/include/rtt.h \
- /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/system/libsam/include/spi.h \
- /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/system/libsam/include/ssc.h \
- /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/system/libsam/include/tc.h \
- /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/system/libsam/include/twi.h \
- /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/system/libsam/include/usart.h \
- /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/system/libsam/include/wdt.h \
- /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/system/libsam/include/timetick.h \
- /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/system/libsam/include/USB_device.h \
- /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/system/libsam/include/USB_host.h \
- /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/system/libsam/include/can.h \
- /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/system/libsam/include/emac.h \
- /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/system/libsam/include/trng.h \
- /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/system/libsam/include/uotghs_device.h \
- /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/system/libsam/include/uotghs_host.h \
- /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/cores/arduino/wiring_constants.h \
+ /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/system/libsam/include/../include/adc.h \
+ /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/system/libsam/include/../include/../chip.h \
+ /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/system/libsam/include/../include/dacc.h \
+ /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/system/libsam/include/../include/interrupt_sam_nvic.h \
+ /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/system/libsam/include/../include/efc.h \
+ /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/system/libsam/include/../include/gpbr.h \
+ /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/system/libsam/include/../include/pio.h \
+ /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/system/libsam/include/../include/pmc.h \
+ /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/system/libsam/include/../include/pwmc.h \
+ /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/system/libsam/include/../include/rstc.h \
+ /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/system/libsam/include/../include/rtc.h \
+ /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/system/libsam/include/../include/rtt.h \
+ /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/system/libsam/include/../include/spi.h \
+ /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/system/libsam/include/../include/ssc.h \
+ /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/system/libsam/include/../include/tc.h \
+ /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/system/libsam/include/../include/twi.h \
+ /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/system/libsam/include/../include/usart.h \
+ /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/system/libsam/include/../include/wdt.h \
+ /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/system/libsam/include/../include/timetick.h \
+ /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/system/libsam/include/../include/USB_device.h \
+ /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/system/libsam/include/../include/USB_host.h \
+ /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/system/libsam/include/../include/can.h \
+ /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/system/libsam/include/../include/emac.h \
+ /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/system/libsam/include/../include/trng.h \
+ /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/system/libsam/include/../include/uotghs_device.h \
+ /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/system/libsam/include/../include/uotghs_host.h \
+ /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/cores/arduino/Stream.h \
+ /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/cores/arduino/Print.h \
+ /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/cores/arduino/WString.h \
+ /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/cores/arduino/avr/pgmspace.h \
+ /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/cores/arduino/Printable.h \
  /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/variants/arduino_due_x/variant.h \
  /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/cores/arduino/Arduino.h \
- /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/cores/arduino/syscalls.h \
+ /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/cores/arduino/avr/interrupt.h \
+ /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/cores/arduino/binary.h \
+ /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/cores/arduino/itoa.h \
+ /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/system/libsam/chip.h \
+ /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/cores/arduino/wiring_constants.h \
+ /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/cores/arduino/WCharacter.h \
+ /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/cores/arduino/Tone.h \
+ /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/cores/arduino/WMath.h \
+ /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/cores/arduino/HardwareSerial.h \
+ /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/cores/arduino/Stream.h \
+ /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/cores/arduino/wiring_pulse.h \
  /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/cores/arduino/wiring.h \
  /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/cores/arduino/wiring_digital.h \
  /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/cores/arduino/wiring_analog.h \
  /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/cores/arduino/wiring_shift.h \
+ /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/cores/arduino/WInterrupts.h \
+ /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/cores/arduino/Arduino.h \
  /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/cores/arduino/watchdog.h \
  /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/cores/arduino/USB/USBDesc.h \
  /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/cores/arduino/USB/USBCore.h \
- /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/cores/arduino/USB/USBAPI.h
+ /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/cores/arduino/USB/USBAPI.h \
+ /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/cores/arduino/RingBuffer.h \
+ /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/cores/arduino/UARTClass.h \
+ /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/cores/arduino/RingBuffer.h \
+ /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/cores/arduino/USARTClass.h \
+ /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/cores/arduino/UARTClass.h \
+ /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/cores/arduino/syscalls.h \
+ /home/marvin/InMoov/skeletonControlArduino/build/sketch/feedback.h

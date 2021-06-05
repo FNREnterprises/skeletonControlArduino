@@ -1,12 +1,12 @@
 {
-  "additionalFiles": "..,..,..,..,..,..,..",
+  "additionalFiles": "..,..,..,..,..,..,..,..,..",
   "builtInLibrariesFolders": "/home/marvin/Downloads/arduino-1.8.13/libraries",
   "builtInToolsFolders": "/home/marvin/Downloads/arduino-1.8.13/tools-builder,/home/marvin/Downloads/arduino-1.8.13/hardware/tools/avr,/home/marvin/.arduino15/packages",
   "compiler.optimization_flags": "",
-  "customBuildProperties": "build.path=/home/marvin/skeletonControlArduino/build,build.warn_data_percentage=75,runtime.tools.arm-none-eabi-gcc.path=/home/marvin/.arduino15/packages/arduino/tools/arm-none-eabi-gcc/4.8.3-2014q1,runtime.tools.arm-none-eabi-gcc-4.8.3-2014q1.path=/home/marvin/.arduino15/packages/arduino/tools/arm-none-eabi-gcc/4.8.3-2014q1,runtime.tools.bossac.path=/home/marvin/.arduino15/packages/arduino/tools/bossac/1.6.1-arduino,runtime.tools.bossac-1.6.1-arduino.path=/home/marvin/.arduino15/packages/arduino/tools/bossac/1.6.1-arduino",
+  "customBuildProperties": "build.path=/home/marvin/InMoov/skeletonControlArduino/build,build.warn_data_percentage=75,runtime.tools.arm-none-eabi-gcc.path=/home/marvin/.arduino15/packages/arduino/tools/arm-none-eabi-gcc/4.8.3-2014q1,runtime.tools.arm-none-eabi-gcc-4.8.3-2014q1.path=/home/marvin/.arduino15/packages/arduino/tools/arm-none-eabi-gcc/4.8.3-2014q1,runtime.tools.bossac.path=/home/marvin/.arduino15/packages/arduino/tools/bossac/1.6.1-arduino,runtime.tools.bossac-1.6.1-arduino.path=/home/marvin/.arduino15/packages/arduino/tools/bossac/1.6.1-arduino",
   "fqbn": "arduino:sam:arduino_due_x_dbg",
   "hardwareFolders": "/home/marvin/Downloads/arduino-1.8.13/hardware,/home/marvin/.arduino15/packages",
   "otherLibrariesFolders": "/home/marvin/Arduino/libraries",
   "runtime.ide.version": "10813",
-  "sketchLocation": "/home/marvin/skeletonControlArduino/skeletonControlArduino.ino"
+  "sketchLocation": "/home/marvin/InMoov/skeletonControlArduino/skeletonControlArduino.ino"
 }

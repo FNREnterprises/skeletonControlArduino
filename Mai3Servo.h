@@ -37,6 +37,19 @@ public:
 	bool thisServoVerbose;
 	char servoName[20];
 
+	bool isFeedbackServo;
+	int i2cMultiplexerAddress;
+	int i2cMultiplexerChannel;
+	int speedACalcType;
+	float speedAFactor;
+	float speedAOffset;
+	int speedBCalcType;
+	float speedBFactor;
+	float speedBOffset;
+	float degreesFactor;
+	int servoSpeedRange;
+	
+
 	// assign servo
 	void begin(int pin, int min, int max, int autoDetachMs, bool inverted, int lastPos, int servoPowerPin);
 

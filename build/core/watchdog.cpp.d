@@ -1,4 +1,4 @@
-/home/marvin/skeletonControlArduino/build/core/watchdog.cpp.o: \
+/home/marvin/InMoov/skeletonControlArduino/build/core/watchdog.cpp.o: \
  /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/cores/arduino/watchdog.cpp \
  /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/system/libsam/chip.h \
  /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/system/CMSIS/Device/ATMEL/sam.h \

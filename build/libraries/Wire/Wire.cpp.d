@@ -1,4 +1,4 @@
-/home/marvin/skeletonControlArduino/build/libraries/Wire/Wire.cpp.o: \
+/home/marvin/InMoov/skeletonControlArduino/build/libraries/Wire/Wire.cpp.o: \
  /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/libraries/Wire/src/Wire.cpp \
  /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/libraries/Wire/src/Wire.h \
  /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/system/libsam/include/twi.h \

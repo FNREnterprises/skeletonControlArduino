@@ -1,4 +1,4 @@
-/home/marvin/skeletonControlArduino/build/libraries/Servo/sam/Servo.cpp.o: \
+/home/marvin/InMoov/skeletonControlArduino/build/libraries/Servo/sam/Servo.cpp.o: \
  /home/marvin/Downloads/arduino-1.8.13/libraries/Servo/src/sam/Servo.cpp \
  /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/cores/arduino/Arduino.h \
  /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/cores/arduino/avr/pgmspace.h \

@@ -1,4 +1,4 @@
-/home/marvin/skeletonControlArduino/build/core/syscalls_sam3.c.o: \
+/home/marvin/InMoov/skeletonControlArduino/build/core/syscalls_sam3.c.o: \
  /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/cores/arduino/syscalls_sam3.c \
  /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/cores/arduino/syscalls.h \
  /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/system/CMSIS/Device/ATMEL/sam.h \

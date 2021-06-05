@@ -1,4 +1,4 @@
-/home/marvin/skeletonControlArduino/build/core/UARTClass.cpp.o: \
+/home/marvin/InMoov/skeletonControlArduino/build/core/UARTClass.cpp.o: \
  /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/cores/arduino/UARTClass.cpp \
  /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/cores/arduino/UARTClass.h \
  /home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/cores/arduino/HardwareSerial.h \

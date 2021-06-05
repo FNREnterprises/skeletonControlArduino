@@ -411,7 +411,7 @@ void servoAssign() {
 // speedBCalcType,speedBFactor,speedBOffset
 // degreesFactor,servoSpeedRange
 
-void feedbackDefinitions() {
+void setFeedbackDefinitions() {
 
 	char * strtokIndx; // this is used by strtok() as an index
 
@@ -826,7 +826,7 @@ void loop() {
 		break;
 
 	case '8':	// servo feedback definitions
-		setFeedbackDeeefinitions();
+		setFeedbackDefinitions();
 		break;
 
 	case 'h':	// set pins high
