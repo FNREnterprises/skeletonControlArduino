@@ -3,6 +3,7 @@
 #include "Mai3Servo.h"
 #include <math.h>
 #include "writeMessages.h"
+#include "feedback.h"
 
 bool log_i21 = true;
 
@@ -50,7 +51,8 @@ void Mai3Servo::stopServo() {
 		Serial.print(lastPosition);
 		Serial.println();
 	}
-	sendServoStatus(pin, lastPosition, assigned, moving, servo.attached(), autoDetachMs, thisServoVerbose, true);
+	byte status = buildStatusByte(assigned, moving, servo.attached(), autoDetachMs>0, thisServoVerbose, true);
+	sendServoStatus(pin, status, lastPosition);
 	loggedLastPos = lastPosition;
 	lastStatusUpdate = millis();
 }
@@ -138,14 +140,29 @@ void Mai3Servo::moveTo(int targetPos, int duration) {
 			Serial.println();
 		}
 		// send target reached message to controller
-		sendServoStatus(pin, lastPosition, assigned, moving, servo.attached(), autoDetachMs > 0, thisServoVerbose, true);
+		byte status = buildStatusByte(assigned, moving, servo.attached(), autoDetachMs > 0, thisServoVerbose, true);
+		sendServoStatus(pin, status, lastPosition);
 		return;
 	}
 
+	clockwise = targetPos < lastPosition;
 
 	numIncrements = duration / 20;
 	increment = (targetPos - lastPosition) / float(numIncrements);
 	nextPos = lastPosition;
+
+	if (isFeedbackServo) {
+		// initialize variables for monitoring
+		magnetStartAngle = readCurrentMagnetAngle(i2cMultiplexerChannel, false);
+		magnetCurrentAngle = magnetStartAngle;
+		magnetPreviousAngle = magnetStartAngle;
+		magnetAngleToMove = (targetPos - lastPosition) * degPerPos;
+		angleFromFullRotations = 0;
+		magnetAngleMoved = 0;
+		startPosition = lastPosition;
+		startupBoostActive = true;		// this requests the final position to get things going
+		boostPos = targetPos;
+	}
 
 	moving = true;
 	lastStatusUpdate = millis();
@@ -194,23 +211,6 @@ void Mai3Servo::detachServo(bool forceDetach) {
 	}
 }
 
-#ifdef __arm__
-// should use uinstd.h to define sbrk but Due causes a conflict
-extern "C" char* sbrk(int incr);
-#else  // __ARM__
-extern char *__brkval;
-#endif  // __arm__
- 
-int freeMemory() {
-  char top;
-#ifdef __arm__
-  return &top - reinterpret_cast<char*>(sbrk(0));
-#elif defined(CORE_TEENSY) || (ARDUINO > 103 && ARDUINO != 151)
-  return &top - __brkval;
-#else  // __arm__
-  return __brkval ? &top - __brkval : &top - __malloc_heap_start;
-#endif  // __arm__
-}
 
 // call this in loop
 void Mai3Servo::update()
@@ -223,9 +223,41 @@ void Mai3Servo::update()
 		return;
 	}
 
-	// send current position and status over serial with limited interval
-	if ((int(nextPos) != loggedLastPos) && (millis() - lastStatusUpdate > 90)) {
-		sendServoStatus(pin, nextPos, assigned, moving, servo.attached(), autoDetachMs, thisServoVerbose, false);
+	// send current position and status over serial
+	if (int(nextPos) != loggedLastPos) {
+		byte status = buildStatusByte(assigned, moving, servo.attached(), autoDetachMs, thisServoVerbose, false);
+
+		if (isFeedbackServo) {
+			//Serial.print("i60 try to read magnet, channel: "); Serial.println(i2cMultiplexerChannel);
+			magnetCurrentAngle = readCurrentMagnetAngle(i2cMultiplexerChannel, true);
+			//if (log_i6x) {Serial.print("i61 magnet position: "); Serial.println(magnet);}
+			int ms = millis() - startMillis;
+
+			// detect overflow of magnet rotation
+			if (abs(magnetPreviousAngle - magnetCurrentAngle) > 180) {angleFromFullRotations += 360;}
+			magnetPreviousAngle = magnetCurrentAngle;
+
+			// detect move started and stop boost
+			if (abs(magnetPreviousAngle - magnetCurrentAngle) > 3) {
+				startupBoostActive = false;
+			}
+
+			// total angle moved
+			if (clockwise) {
+				magnetAngleMoved = magnetStartAngle - magnetCurrentAngle - angleFromFullRotations;
+				currentPosition = startPosition + (magnetAngleMoved / degPerPos);
+			} else {
+				magnetAngleMoved = magnetCurrentAngle + angleFromFullRotations - magnetStartAngle;
+				currentPosition = startPosition - (magnetAngleMoved / degPerPos);
+			}
+			Serial.print(ms); Serial.print(" ms, ");
+			Serial.print("magnetAngleMoved: "); Serial.println(magnetAngleMoved);
+
+			sendFeedbackStatus(pin, status, nextPos, currentPosition, ms);
+
+		} else {
+			sendServoStatus(pin, status, nextPos);
+		}
 		loggedLastPos = int(nextPos);
 		lastStatusUpdate = millis();
 
@@ -237,38 +269,42 @@ void Mai3Servo::update()
 	}
 
 
-	// check for target reached
-	if (moving && numIncrements <= 0) {
-		moving = false;
-		arrivedMillis = millis();
-		lastPosition = round(nextPos);		// the assumed reached position
+	// check for target reached	(this might need an update as requesting final position is not
+	// the same as arriving there. For non-feedback servos a delay might be useful)
+	byte status = buildStatusByte(assigned, moving, servo.attached(), autoDetachMs > 0, thisServoVerbose, true);
+	if (isFeedbackServo) {
+		if (abs(magnetAngleToMove - magnetAngleMoved) < 3) {
+			moving = false;
+			arrivedMillis = millis();
+			int ms = millis() - startMillis;
+			if (verbose || thisServoVerbose) {
+				Serial.print("i12 target reached "); Serial.print(servoName);
+				Serial.print(", feedback position: "); Serial.print(lastPosition);
+				Serial.println();
+			}
+			sendFeedbackStatus(pin, status, nextPos, currentPosition, ms);
 
-		if (verbose || thisServoVerbose) {
-			Serial.print("i11 target reached "); Serial.print(servoName);
-			Serial.print(", position: "); Serial.print(lastPosition);
-			Serial.println();
 		}
-		sendServoStatus(pin, lastPosition, assigned, moving, servo.attached(), autoDetachMs > 0, thisServoVerbose, true);
+	} else {
+		if (moving && numIncrements <= 0) {
+			moving = false;
+			arrivedMillis = millis();
+			lastPosition = round(nextPos);		// the assumed reached position
 
-		return;
+			if (verbose || thisServoVerbose) {
+				Serial.print("i11 target reached "); Serial.print(servoName);
+				Serial.print(", position: "); Serial.print(lastPosition);
+				Serial.println();
+			}
+			sendServoStatus(pin, status, lastPosition);
+
+			return;
+		}
 	}
 
 	// detach with delay after we should have arrived at target position
 	if (inMoveRequest && (autoDetachMs > 0)) {
 
-		// check for arrivedMillis in the future, do nothing if so
-		//if (arrivedMillis > millis()) return;
-		/* {
-			
-			if (thisServoVerbose) {
-				Serial.print("i12 detach servo "); Serial.print(servoName);
-				Serial.print(", arrivedMillis ("); Serial.print(arrivedMillis); Serial.print(" in the future");
-				Serial.print(" , currMillis: "); Serial.print(millis());
-				Serial.println();
-			}
-			return;
-		}
-		*/
 		// check for move ended and autoDetachMs expired
 		if ((!moving) && ((millis() - arrivedMillis) > autoDetachMs)) {
 
@@ -281,8 +317,17 @@ void Mai3Servo::update()
 				Serial.print(" ms after arrived: "); Serial.print((millis()-arrivedMillis));
 				Serial.println();
 			}
-			//sendServoStatus(pin, nextPos, assigned, moving, servo.attached(), autoDetachMs, thisServoVerbose);
 			return;
+		} else {
+			// verify movement during auto detach period and after "target reached"
+			if (isFeedbackServo) {
+				byte status = buildStatusByte(assigned, moving, servo.attached(), autoDetachMs, thisServoVerbose, false);
+				int ms = millis() - startMillis;
+				magnetCurrentAngle = readCurrentMagnetAngle(i2cMultiplexerChannel, true);
+				magnetAngleMoved = magnetCurrentAngle + angleFromFullRotations - magnetStartAngle;
+				currentPosition = startPosition - (magnetAngleMoved / degPerPos);
+				sendFeedbackStatus(pin, status, nextPos, currentPosition, ms);
+			}
 		}
 	}
 
@@ -296,7 +341,12 @@ void Mai3Servo::update()
 		lastPosition = round(nextPos);		// set last position as the assumed reached position
 		nextPos += increment;				// ... and nextPos as the next step position
 		numIncrements -= 1;
-		writeServoPosition(nextPos, inverted);
+		if (startupBoostActive) {
+			writeServoPosition(boostPos, inverted);
+		} else {
+			writeServoPosition(nextPos, inverted);
+		}
+	
 	}
 
 }

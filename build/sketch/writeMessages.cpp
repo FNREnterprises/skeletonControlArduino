@@ -5,55 +5,59 @@
 
 #include "writeMessages.h"
 
-char statusMsg[10];
+byte statusMsg[10];
 
+byte buildStatusByte(bool isAssigned, bool isMoving, bool isAttached, bool isAutoDetach, bool isVerbose, bool hasTargetReached) {
+	byte statusByte = 0x80;
+	if (isAssigned)       { statusByte = statusByte | 0x01; }
+	if (!hasTargetReached) {
+		if (isMoving)         { statusByte = statusByte | 0x02; }
+	}
+	if (isAttached)       { statusByte = statusByte | 0x04; }
+	if (isAutoDetach)     { statusByte = statusByte | 0x08; }
+	if (isVerbose)        { statusByte = statusByte | 0x10; }
+	if (hasTargetReached) { statusByte = statusByte | 0x20; }
+	return statusByte;
+}
 
-void sendServoStatus(int pin, int pos, 
-		bool assigned, bool isRunning, bool attached, bool autoDetach, bool verbose, bool targetReached) {
+void sendServoStatus(byte pin, byte status, byte requestedPosition) {
 	// servo status will be sent every 20 ms for moving servos
 	// as all servos could be moving at the same time the message needs to be as short as possible
-	// therefore pack info tightly and avoid a generated \n as it will terminate the message
+	// therefore pack info tightly and avoid a generated \n in the data bytes as it would terminate 
+	// the readline of the receiver
 
-	// 17.08.2020 Jürg, never ending problems trying to send the status massage as byte array
-	// after about 10 servo requests the arduino stopped sending data or maybe python stopped receiving
-	// this solution so far has worked now.
+	statusMsg[0] = 0xC0 | pin;		// marker for compressed status message
+	statusMsg[1] = status;
+	statusMsg[2] = 0x10 + requestedPosition;		// add offset to position to avoid 0x0A as byte value
 
-	// 4.6.2021 Jürg additional information for feedback servos
-
-	Serial.print(0x80 | pin, HEX);
-
-	Serial.print(0x28 + pos, HEX);
-	
-	byte statusByte = 0x80;
-	if (assigned)      { statusByte = statusByte | 0x01; }
-	if (isRunning)     { statusByte = statusByte | 0x02; }
-	if (attached)      { statusByte = statusByte | 0x04; }
-	if (autoDetach)    { statusByte = statusByte | 0x08; }
-	if (verbose)       { statusByte = statusByte | 0x10; }
-	if (targetReached) { statusByte = statusByte | 0x20; }
-	Serial.print(statusByte, HEX);
-	Serial.println(statusMsg);
+	// send binary data bytewise
+	for (int i=0; i<3; i++) {
+		Serial.write(statusMsg[i]);
+	}
+	Serial.write(0x0A);		// newline as terminator
 }
 
 
-void sendFeedbackStatus(int pin, int pos, 
-		bool assigned, bool isRunning, bool attached, bool autoDetach, bool verbose, bool targetReached,
-		int ms) {
+void sendFeedbackStatus(byte pin, byte status, byte requestedPosition, byte currentPosition, int ms) {
 
-	Serial.print(0x80 | pin, HEX);
-	Serial.print(0x28 + pos, HEX);
-	
-	byte statusByte = 0x80;
-	if (assigned)      { statusByte = statusByte | 0x01; }
-	if (isRunning)     { statusByte = statusByte | 0x02; }
-	if (attached)      { statusByte = statusByte | 0x04; }
-	if (autoDetach)    { statusByte = statusByte | 0x08; }
-	if (verbose)       { statusByte = statusByte | 0x10; }
-	if (targetReached) { statusByte = statusByte | 0x20; }
-	Serial.print(statusByte, HEX);
+	int codedInt;
 
-	// send ms since move start 
-	Serial.print(ms);
-	
-	Serial.println(statusMsg);		// solved problems with blocking serial
+	statusMsg[0] = 0xC0 | pin;		// marker for compressed status message
+	statusMsg[1] = status;
+	statusMsg[2] = 0x10 + requestedPosition;		// add offset to position to avoid 0x0A as byte value
+
+	// in order to avoid sending termination value 0x0A add an offset 4112 to the int value
+	// measured angle moved
+	statusMsg[3] = 0x10 + currentPosition;
+
+	// ms since move start 
+	codedInt = ms + 4112;		// 4096 + 16
+	statusMsg[4] = codedInt >> 8;
+	statusMsg[5] = codedInt & 0x00FF;
+
+	// send binary data bytewise
+	for (int i=0; i<6; i++) {
+		Serial.write(statusMsg[i]);
+	}
+	Serial.write(0x0A);		// newline as terminator
 }

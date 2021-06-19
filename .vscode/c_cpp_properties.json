@@ -34,6 +34,7 @@
             "name": "Arduino",
             "compilerPath": "/home/marvin/.arduino15/packages/arduino/tools/arm-none-eabi-gcc/4.8.3-2014q1/bin/arm-none-eabi-g++",
             "compilerArgs": [
+                "-w",
                 "-std=gnu++11",
                 "-ffunction-sections",
                 "-fdata-sections",
@@ -50,7 +51,7 @@
                 "/home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/system/CMSIS/Device/ATMEL/",
                 "/home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/cores/arduino",
                 "/home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/variants/arduino_due_x",
-                "/home/marvin/Downloads/arduino-1.8.13/libraries/Servo/src",
+                "/home/marvin/Arduino/libraries/Servo/src",
                 "/home/marvin/.arduino15/packages/arduino/hardware/sam/1.6.12/libraries/Wire/src",
                 "/home/marvin/.arduino15/packages/arduino/tools/arm-none-eabi-gcc/4.8.3-2014q1/arm-none-eabi/include/c++/4.8.3",
                 "/home/marvin/.arduino15/packages/arduino/tools/arm-none-eabi-gcc/4.8.3-2014q1/arm-none-eabi/include/c++/4.8.3/arm-none-eabi",

@@ -17,7 +17,7 @@
   {
     "Sourcefile": "/home/marvin/InMoov/skeletonControlArduino/build/sketch/Mai3Servo.cpp",
     "Include": "Servo.h",
-    "Includepath": "/home/marvin/Downloads/arduino-1.8.13/libraries/Servo/src"
+    "Includepath": "/home/marvin/Arduino/libraries/Servo/src"
   },
   {
     "Sourcefile": "/home/marvin/InMoov/skeletonControlArduino/build/sketch/Mai3Servo.cpp",
@@ -50,37 +50,37 @@
     "Includepath": null
   },
   {
-    "Sourcefile": "/home/marvin/Downloads/arduino-1.8.13/libraries/Servo/src/avr/Servo.cpp",
+    "Sourcefile": "/home/marvin/Arduino/libraries/Servo/src/avr/Servo.cpp",
     "Include": "",
     "Includepath": null
   },
   {
-    "Sourcefile": "/home/marvin/Downloads/arduino-1.8.13/libraries/Servo/src/mbed/Servo.cpp",
+    "Sourcefile": "/home/marvin/Arduino/libraries/Servo/src/mbed/Servo.cpp",
     "Include": "",
     "Includepath": null
   },
   {
-    "Sourcefile": "/home/marvin/Downloads/arduino-1.8.13/libraries/Servo/src/megaavr/Servo.cpp",
+    "Sourcefile": "/home/marvin/Arduino/libraries/Servo/src/megaavr/Servo.cpp",
     "Include": "",
     "Includepath": null
   },
   {
-    "Sourcefile": "/home/marvin/Downloads/arduino-1.8.13/libraries/Servo/src/nrf52/Servo.cpp",
+    "Sourcefile": "/home/marvin/Arduino/libraries/Servo/src/nrf52/Servo.cpp",
     "Include": "",
     "Includepath": null
   },
   {
-    "Sourcefile": "/home/marvin/Downloads/arduino-1.8.13/libraries/Servo/src/sam/Servo.cpp",
+    "Sourcefile": "/home/marvin/Arduino/libraries/Servo/src/sam/Servo.cpp",
     "Include": "",
     "Includepath": null
   },
   {
-    "Sourcefile": "/home/marvin/Downloads/arduino-1.8.13/libraries/Servo/src/samd/Servo.cpp",
+    "Sourcefile": "/home/marvin/Arduino/libraries/Servo/src/samd/Servo.cpp",
     "Include": "",
     "Includepath": null
   },
   {
-    "Sourcefile": "/home/marvin/Downloads/arduino-1.8.13/libraries/Servo/src/stm32f4/Servo.cpp",
+    "Sourcefile": "/home/marvin/Arduino/libraries/Servo/src/stm32f4/Servo.cpp",
     "Include": "",
     "Includepath": null
   },

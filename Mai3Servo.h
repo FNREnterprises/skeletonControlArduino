@@ -13,11 +13,9 @@ class Mai3Servo
 private:
 
 	Servo servo;
-	float nextPos;
 	int loggedLastPos;
 	int numIncrements;    // number of 20 milli steps
 	float increment;
-    unsigned long startMillis; // millis of moveTo initiated
 	unsigned long lastStatusUpdate;  // millis of last status update
 	int min;
 	int max;
@@ -26,6 +24,7 @@ private:
 	bool stopped;
 
 public:
+	float nextPos;
 	bool assigned;
 	bool moving;
 	int autoDetachMs;
@@ -36,19 +35,39 @@ public:
 	bool inMoveRequest;
 	bool thisServoVerbose;
 	char servoName[20];
+    unsigned long startMillis; // millis of moveTo initiated
 
+	// definitions of feedback servo
 	bool isFeedbackServo;
-	int i2cMultiplexerAddress;
-	int i2cMultiplexerChannel;
+	byte i2cMultiplexerAddress;
+	byte i2cMultiplexerChannel;
 	int speedACalcType;
 	float speedAFactor;
 	float speedAOffset;
 	int speedBCalcType;
 	float speedBFactor;
 	float speedBOffset;
-	float degreesFactor;
+	float degPerPos;
 	int servoSpeedRange;
+
+	// runtime data of feedback servo
+	int magnetStartAngle;		// 0..359
+	int magnetPreviousAngle;
+	int magnetCurrentAngle;		// 0..359
+	int magnetAngleToMove;		// can be more than 360
+	int angleFromFullRotations;
+	int magnetAngleMoved;
+	int startPosition;
+	int currentPosition;
+	bool clockwise;
+	bool servoBlocked = false;
 	
+	// by controlling speed with small linear position updates the joints show a hefty lag and keep moving
+	// when the final requested target has been sent to the servo
+	// to compensate start the move with a request for final position, than reduce that value to control speed
+	bool startupBoostActive = false;
+	int boostPos;
+
 
 	// assign servo
 	void begin(int pin, int min, int max, int autoDetachMs, bool inverted, int lastPos, int servoPowerPin);

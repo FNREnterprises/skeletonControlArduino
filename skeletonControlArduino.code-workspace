@@ -11,6 +11,9 @@
 		"deepcode.uploadApproved": true,
 		"files.exclude": {
 			"**/build": true
-		}
+		},
+		"arduino.ignoreBoards": [
+		
+		]
 	}
 }

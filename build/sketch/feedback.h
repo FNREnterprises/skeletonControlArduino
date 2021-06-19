@@ -1,9 +1,13 @@
 
+#ifndef feedback_h
+#define feedback_h
 
-#define AS5600_ADDRESS 0x36
+#include "Arduino.h"
+
 #define TCA9548_ADDRESS 0x70
-#define RAW_ANGLE_HI 0x0c
-#define RAW_ANGLE_LO 0x0d
+#define AS5600_ADDRESS 0x36
 
-extern int readCurrentMagnetAngle(byte channel);
+extern int readCurrentMagnetAngle(byte channel, bool isVerbose);
 extern int absAngleDiff(int a, int b);
+
+#endif

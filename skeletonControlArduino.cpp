@@ -1,6 +1,6 @@
 
 
-char version[10] = "v2.14";
+char version[10] = "v2.30";		// feedback servos included
 
 /*
  Name:		inmoovArduino.ino
@@ -142,6 +142,8 @@ i41 powergroup ON/OFF
 i50 log of incoming messages
 i51 temporary logs for debugging
 
+i6x i2c logs
+
 // logs for servos with servoVerbose set
 v01 move to request
 ============================================================================================================ */
@@ -152,6 +154,7 @@ bool log_i10=true;
 bool log_i50=true;
 bool log_i51=true;
 bool log_i52=true;	// feedback definitions
+bool log_i6x=false;	// feedback reads
 
 #include "Arduino.h"
 
@@ -165,6 +168,7 @@ bool log_i52=true;	// feedback definitions
 #include "Mai3Servo.h"
 #include "readMessages.h"
 #include "writeMessages.h"
+#include "feedback.h"
 
 bool verbose = false;
 
@@ -186,8 +190,8 @@ powerGroupType powerGroup[NUMBER_OF_POWER_PINS] = {
 	{17, false, "IN4-rightHand"},
 	{18, false, "IN5-head"},
 	{19, false, "IN6-torso"},
-	{20, false, "unused"},
-	{20, false, "unused"}
+	{19, false, "unused"},
+	{19, false, "unused"}
 };
 
 char mode = 'x';
@@ -207,10 +211,10 @@ unsigned long ledToggleMillis = millis();
 // the setup function runs once when you press reset, power the board or open the serial connection
 void setup() {
 
-	//Serial.begin(115200);
 	Serial.begin(115200);
-	delay(500);
+	delay(400);
 
+	// S0/S1 MUST BE THE FIRST MESSAGE SENT TO SKELETONCONTROL !!//
 	// check for arduino Id
 	// Arduino 0 (left) has a connection of Pin 50 with Ground
 	// read pin 50, in left arduino it is connected to ground
@@ -227,6 +231,22 @@ void setup() {
 	Serial.print(" skeletonControlArduino "); Serial.println(version);
 
 
+	// check for connection with TCA9548 (i2c multiplexer)
+	Wire.begin();
+	Wire.setClock(100000L);
+	delay(200);
+
+	Wire.beginTransmission(TCA9548_ADDRESS);
+  	if (Wire.endTransmission()==0) {
+    	Serial.println("i60 TCA9548 ready");
+  	}  else { 
+    	Serial.println("i61 no response from TCA9548");
+  	}
+
+	// test reading AS5600 data on channel 0
+	readCurrentMagnetAngle(0, true);
+
+
 	pinMode(LED_BUILTIN, OUTPUT);
 
 	// the power pins, set all power off
@@ -235,9 +255,12 @@ void setup() {
 
 		// ATTENTION: relais board did not work with 6V power supply, connect board vcc to arduino due 5v!
 		digitalWrite(powerGroup[powerGroupIndex].powerPin, SERVO_POWER_OFF);		// should switch relais off (apply before setting pinmode!)
+		Serial.print("set power pin to OUTPUT: "); Serial.println(powerGroup[powerGroupIndex].powerPin);
 		pinMode(powerGroup[powerGroupIndex].powerPin, OUTPUT);
+		//readCurrentMagnetAngle(0);
+
 	}
-	delay(1000);
+	delay(500);
 
 	// show different loop frequency on arduinos
 	if (arduinoId == 0) {
@@ -261,7 +284,7 @@ void setup() {
 			powerGroup[powerGroupIndex].powerOn = false;		
 		}
 	}
-}
+}	// end of setup
 
 
 // each servo assign adds the servo to the servoList
@@ -401,7 +424,8 @@ void servoAssign() {
 		Serial.println();
 	}
 	servoList[servoId].detachServo(true);
-	sendServoStatus(pin, lastPos, true, false, true, autoDetachMs, verbose, true);
+	byte status = buildStatusByte(true, false, true, autoDetachMs>0, verbose, true);
+	sendServoStatus(pin, status, lastPos);
 
 }
 
@@ -455,7 +479,7 @@ void setFeedbackDefinitions() {
 	servoList[servoId].speedBOffset = atof(strtokIndx);
 
 	strtokIndx = strtok(NULL, ",");		// position for next list item
-	servoList[servoId].degreesFactor = atof(strtokIndx);
+	servoList[servoId].degPerPos = atof(strtokIndx);
 
 	strtokIndx = strtok(NULL, ",");		// position for next list item
 	servoList[servoId].servoSpeedRange = atoi(strtokIndx);
@@ -463,6 +487,8 @@ void setFeedbackDefinitions() {
 	//if (servoList[servoId].thisServoVerbose) {
 	if (log_i52) {
 		Serial.print("i52 feedback definitions, servoId: "); Serial.print(servoId);
+		Serial.print(", servoName: "); Serial.print(servoList[servoId].servoName);
+		Serial.print(", isFeedbackServo: "); Serial.print(servoList[servoId].isFeedbackServo);
 		Serial.print(", i2cMultiplexerAddress: "); Serial.print(servoList[servoId].i2cMultiplexerAddress);
 		Serial.print(", i2cMultiplexerChannel: "); Serial.print(servoList[servoId].i2cMultiplexerChannel);
 		Serial.print(", speedACalcType: "); Serial.print(servoList[servoId].speedACalcType);
@@ -471,7 +497,7 @@ void setFeedbackDefinitions() {
 		Serial.print(", speedBCalcType: "); Serial.print(servoList[servoId].speedBCalcType);
 		Serial.print(", speedBFactor: "); Serial.print(servoList[servoId].speedBFactor);
 		Serial.print(", speedBOffset: "); Serial.print(servoList[servoId].speedBOffset);
-		Serial.print(", degreeFactor: "); Serial.print(servoList[servoId].degreesFactor);
+		Serial.print(", degreeFactor: "); Serial.print(servoList[servoId].degPerPos);
 		Serial.print(", servoSpeedRange: "); Serial.print(servoList[servoId].servoSpeedRange);
 		Serial.println();
 	}
@@ -491,7 +517,7 @@ void servoMoveTo() {
 	int pin = atoi(strtokIndx);    		// pin for move
 
 	strtokIndx = strtok(NULL, ",");		// position for next list item
-	int position = atoi(strtokIndx);    // requested position
+	int position = atoi(strtokIndx);    // requested final position
 
 	strtokIndx = strtok(NULL, ",");		// position for next list item
 	int duration = atoi(strtokIndx);    // duration of move
@@ -581,13 +607,15 @@ void reportServoStatus() {
 		Serial.print("report servo request for unassigned servo, pin: "); Serial.print(pin); Serial.println();
 		return;
 	}
-
+	
 	int position = servoList[servoId].lastPosition;
 	bool assigned = servoList[servoId].assigned; 
 	bool isMoving = servoList[servoId].moving;
 	bool attached = servoList[servoId].attached();
 	int autoDetachMs = servoList[servoId].autoDetachMs;
 	bool verbose = servoList[servoId].thisServoVerbose;
+	int nextPos = servoList[servoId].nextPos;
+	bool thisServoVerbose = servoList[servoId].thisServoVerbose;
 
 	if (verbose) {
 		Serial.print("servoStatus, servoId: "); Serial.print(servoId);
@@ -597,7 +625,13 @@ void reportServoStatus() {
 		Serial.print(", attached: "); Serial.print(attached);
 		Serial.println();
 	}
-	sendServoStatus(pin, position, assigned, isMoving, attached, autoDetachMs, verbose, false);
+	byte status = buildStatusByte(assigned, isMoving, attached, autoDetachMs>0, thisServoVerbose, false);
+	if (servoList[servoId].isFeedbackServo) {
+		int ms = millis() - servoList[servoId].startMillis;
+		sendFeedbackStatus(pin, status, nextPos, servoList[servoId].currentPosition, ms);
+	} else {
+		sendServoStatus(pin, status, nextPos);
+	}
 }
 
 
