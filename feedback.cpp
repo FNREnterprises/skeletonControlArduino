@@ -7,6 +7,8 @@
 int RAW_ANGLE_HI=0x0c;
 int RAW_ANGLE_LO=0x0d;
 
+bool log_i69 = false;
+
 float calcLinear(float base, float speed, float offset) {
     // calcType 1
     return base * speed + offset;
@@ -66,7 +68,7 @@ int readCurrentMagnetAngle(byte channel, bool isVerbose) {
   int raw_lo = getRegisterValue(RAW_ANGLE_LO);
   int raw = (raw_hi << 8) + raw_lo;
   int angle = int(raw / 4096.0 * 360);
-  if (isVerbose) {
+  if (log_i69) {
     Serial.print("i69 magnet hi: "); Serial.print(raw_hi); 
     Serial.print(", lo: "); Serial.print(raw_lo); 
     Serial.print(", total: "); Serial.print(raw);

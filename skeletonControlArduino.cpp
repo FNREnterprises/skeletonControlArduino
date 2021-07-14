@@ -1,6 +1,6 @@
 
 
-char version[10] = "v2.30";		// feedback servos included
+char version[10] = "v2.50";		// use PID control for feedback servos
 
 /*
  Name:		inmoovArduino.ino
@@ -95,9 +95,9 @@ update autoDetachMs: 5,<servoId>,<milliseconds>
 	servoId: unique servoId per Arduino from inmoovServoControl.servoList
 		updates the autoDetachMs value of the servo, 0 prevents detach after move
 
-update lastPosition without moving: 6,<servoId>,<position>
+update currentPosition without moving: 6,<servoId>,<position>
 	servoId: unique servoId per Arduino from inmoovServoControl.servoList
-		if physical servo position does not match the lastPosition value in the arduino the lastPosition is overwritten
+		if physical servo position does not match the currentPosition value in the arduino the currentPosition is overwritten
 
 change log level for servo: 7,<servoId>,<newState>
 	servoId: unique servoId per Arduino from inmoovServoControl.servoList
@@ -128,6 +128,8 @@ i11 target reached
 i12 arrived time in the future
 i13 detach servo
 i14 set servo last position before powerup
+i15 partial steps
+i16 next wanted position
 
 i20 new autoDetach value received 
 i21 servo stop received
@@ -301,7 +303,7 @@ int servoIdOfPin(int pin) {
 
 // any move request for a servo has to check for current servo group power
 // if the servo group power is currently off, all servos in the group
-// need to be set to their "lastPosition" and  need to be attached
+// need to be set to their "currentPosition" and  need to be attached
 // NOTE: powerOff is handled in loop
 void powerUpServoGroup(int servoId) {
 
@@ -461,28 +463,19 @@ void setFeedbackDefinitions() {
 	servoList[servoId].i2cMultiplexerChannel = atoi(strtokIndx);   // channel for reading magnet p this servo
 
 	strtokIndx = strtok(NULL, ",");		// position for next list item
-	servoList[servoId].speedACalcType = atoi(strtokIndx);
+	servoList[servoId].kp = atof(strtokIndx);
 
 	strtokIndx = strtok(NULL, ",");		// position for next list item
-	servoList[servoId].speedAFactor = atof(strtokIndx);
+	servoList[servoId].ki = atof(strtokIndx);
 
 	strtokIndx = strtok(NULL, ",");		// position for next list item
-	servoList[servoId].speedAOffset = atof(strtokIndx);
-
-	strtokIndx = strtok(NULL, ",");		// position for next list item
-	servoList[servoId].speedBCalcType = atoi(strtokIndx);
-
-	strtokIndx = strtok(NULL, ",");		// position for next list item
-	servoList[servoId].speedBFactor = atof(strtokIndx);
-
-	strtokIndx = strtok(NULL, ",");		// position for next list item
-	servoList[servoId].speedBOffset = atof(strtokIndx);
+	servoList[servoId].kd = atof(strtokIndx);
 
 	strtokIndx = strtok(NULL, ",");		// position for next list item
 	servoList[servoId].degPerPos = atof(strtokIndx);
 
 	strtokIndx = strtok(NULL, ",");		// position for next list item
-	servoList[servoId].servoSpeedRange = atoi(strtokIndx);
+	servoList[servoId].feedbackInverted = atoi(strtokIndx);
 
 	//if (servoList[servoId].thisServoVerbose) {
 	if (log_i52) {
@@ -491,14 +484,11 @@ void setFeedbackDefinitions() {
 		Serial.print(", isFeedbackServo: "); Serial.print(servoList[servoId].isFeedbackServo);
 		Serial.print(", i2cMultiplexerAddress: "); Serial.print(servoList[servoId].i2cMultiplexerAddress);
 		Serial.print(", i2cMultiplexerChannel: "); Serial.print(servoList[servoId].i2cMultiplexerChannel);
-		Serial.print(", speedACalcType: "); Serial.print(servoList[servoId].speedACalcType);
-		Serial.print(", speedAFactor: "); Serial.print(servoList[servoId].speedAFactor);
-		Serial.print(", speedAOffset: "); Serial.print(servoList[servoId].speedAOffset);
-		Serial.print(", speedBCalcType: "); Serial.print(servoList[servoId].speedBCalcType);
-		Serial.print(", speedBFactor: "); Serial.print(servoList[servoId].speedBFactor);
-		Serial.print(", speedBOffset: "); Serial.print(servoList[servoId].speedBOffset);
-		Serial.print(", degreeFactor: "); Serial.print(servoList[servoId].degPerPos);
-		Serial.print(", servoSpeedRange: "); Serial.print(servoList[servoId].servoSpeedRange);
+		Serial.print(", kp: "); Serial.print(servoList[servoId].kp);
+		Serial.print(", ki: "); Serial.print(servoList[servoId].ki);
+		Serial.print(", kd: "); Serial.print(servoList[servoId].kd);
+		Serial.print(", degPerPos: "); Serial.print(servoList[servoId].degPerPos);
+		Serial.print(", feedbackInverted: "); Serial.print(servoList[servoId].feedbackInverted);
 		Serial.println();
 	}
 }
@@ -608,18 +598,17 @@ void reportServoStatus() {
 		return;
 	}
 	
-	int position = servoList[servoId].lastPosition;
 	bool assigned = servoList[servoId].assigned; 
 	bool isMoving = servoList[servoId].moving;
 	bool attached = servoList[servoId].attached();
 	int autoDetachMs = servoList[servoId].autoDetachMs;
 	bool verbose = servoList[servoId].thisServoVerbose;
-	int nextPos = servoList[servoId].nextPos;
 	bool thisServoVerbose = servoList[servoId].thisServoVerbose;
+	byte currentPosition = servoList[servoId].currentPosition;
 
 	if (verbose) {
 		Serial.print("servoStatus, servoId: "); Serial.print(servoId);
-		Serial.print(", position: "); Serial.print(position);
+		Serial.print(", position: "); Serial.print(currentPosition);
 		Serial.print(", assigned: "); Serial.print(assigned);
 		Serial.print(", isMoving: "); Serial.print(isMoving);
 		Serial.print(", attached: "); Serial.print(attached);
@@ -628,9 +617,13 @@ void reportServoStatus() {
 	byte status = buildStatusByte(assigned, isMoving, attached, autoDetachMs>0, thisServoVerbose, false);
 	if (servoList[servoId].isFeedbackServo) {
 		int ms = millis() - servoList[servoId].startMillis;
-		sendFeedbackStatus(pin, status, nextPos, servoList[servoId].currentPosition, ms);
+		sendFeedbackStatus(pin, status, 
+			servoList[servoId].currentPosition, 
+			ms, 
+			servoList[servoId].servoWritePosition, 
+			servoList[servoId].wantedPosition);
 	} else {
-		sendServoStatus(pin, status, nextPos);
+		sendServoStatus(pin, status, servoList[servoId].currentPosition);
 	}
 }
 
@@ -670,7 +663,7 @@ void setAutoDetach() {
 
 
 void setPosition() {
-	// overwrite lastPosition of servo with given newPos
+	// overwrite currentPosition of servo with given newPos
 	// does not move the servo!
 
 	char * strtokIndx; // this is used by strtok() as an index
@@ -690,7 +683,7 @@ void setPosition() {
 		return;
 	}
 
-	servoList[servoId].lastPosition = newPos;
+	servoList[servoId].currentPosition = newPos;
 }
 
 
@@ -764,6 +757,7 @@ void pinLow() {
 // the loop function runs over and over again until power down or reset
 void loop() {
 
+	// show running mode and arduinoId with led
 	if (millis() - ledToggleMillis < highMillis) {
 		digitalWrite(LED_BUILTIN, HIGH);
 	}
@@ -780,7 +774,9 @@ void loop() {
 	// update servos max 50 times per second
 	if ((millis() - lastServoUpdateMillis) >= 20) {
 		for (int i = 0; i < assignedServos; i++) {
-			servoList[i].update();
+			if (servoList[i].inMoveRequest) {
+				servoList[i].update();
+			}
 		}
 		lastServoUpdateMillis = millis();
 	}
@@ -851,7 +847,7 @@ void loop() {
 		setAutoDetach();
 		break;
 
-	case '6':	// update lastPosition without moving
+	case '6':	// update currentPosition without moving
 		setPosition();
 		break;
 

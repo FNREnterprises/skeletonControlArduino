@@ -13,14 +13,16 @@ class Mai3Servo
 private:
 
 	Servo servo;
-	int loggedLastPos;
-	int numIncrements;    // number of 20 milli steps
-	float increment;
+	//nt loggedLastPos;
+	int numPartialSteps;    // number of 20 milli steps
+	float stepIncrement;
 	unsigned long lastStatusUpdate;  // millis of last status update
 	int min;
 	int max;
 
-	unsigned long arrivedMillis;	// millis when servo should have arrived
+	unsigned long finalPositionRequestedMillis;	// millis when final position requested
+	unsigned long arrivedMillis;	// non-feedback-servos: millis when final position requested
+									// feedback-servos: millis when final position reached
 	bool stopped;
 
 public:
@@ -28,10 +30,18 @@ public:
 	bool assigned;
 	bool moving;
 	int autoDetachMs;
+	int durationMs;			// duration of the move in millis
+	int startPosition;		// the current position when requesting the move	
+	int targetPosition;		// the move target position
+	int currentPosition;	// for non-feedback servos the wantedPosition as we do not know better
+							// for feedback servos the measured position from the feedback sensor							
+	float wantedPosition;	// linear position progress in move
+							// currently a linear position between start and end over time
+	byte servoWritePosition;	// position written to the servo
 	bool inverted;
 	int pin;
 	int servoPowerPin;
-	int lastPosition;		// servo.read did not work for me
+	//int lastPosition;		// servo.read did not work for me
 	bool inMoveRequest;
 	bool thisServoVerbose;
 	char servoName[20];
@@ -41,14 +51,27 @@ public:
 	bool isFeedbackServo;
 	byte i2cMultiplexerAddress;
 	byte i2cMultiplexerChannel;
-	int speedACalcType;
-	float speedAFactor;
-	float speedAOffset;
-	int speedBCalcType;
-	float speedBFactor;
-	float speedBOffset;
+	//int speedACalcType;
+	//float speedAFactor;
+	//float speedAOffset;
+	//int speedBCalcType;
+	//float speedBFactor;
+	//float speedBOffset;
+
+	// PID
+	bool pidEnabled = true;
+	float kp = 4;
+	float ki = 0;
+	float kd = 0;
+	float prevStepMillis;
+	float pidError;
+	float pidLastError;
+	float cumError;
+	float rateError;
+
 	float degPerPos;
-	int servoSpeedRange;
+	//int servoSpeedRange;
+	bool feedbackInverted;
 
 	// runtime data of feedback servo
 	int magnetStartAngle;		// 0..359
@@ -57,9 +80,7 @@ public:
 	int magnetAngleToMove;		// can be more than 360
 	int angleFromFullRotations;
 	int magnetAngleMoved;
-	int startPosition;
-	int currentPosition;
-	bool clockwise;
+	bool isFeedbackClockwise;
 	bool servoBlocked = false;
 	
 	// by controlling speed with small linear position updates the joints show a hefty lag and keep moving
@@ -82,7 +103,7 @@ public:
 	void detachServo(bool forceDetach);
 
 	// set servoPosition
-	void setLastPosition(int newLastPosition);
+	void setCurrentPosition(int newCurrentPosition);
 
 	// attach servo
 	void attach();
@@ -101,9 +122,17 @@ public:
 	// the commanding task needs to convert degrees to the relative range
 	void moveTo(int targetPos, int durationMillis);
 
+	byte evalPositionFromFeedbackSensor();
 
 	// needs repeated call
     void update();
+
+	// PID control
+	bool usePidControl = true;
+	int computePid();
+
+	bool useBandControl = false;
+	int computeBand();
 };
 
 #endif
