@@ -67,7 +67,7 @@ char version[10] = "v2.50";		// use PID control for feedback servos
  =======================================================================================================
 
  Accepted commands:
- servoAssign:  0,<servoId>,<pin>,<minPosition>,<maxPosition>,<autoDetachMs>,<inverted><lastPos>
+ servoAssign:  0,<servoId>,<pin>,<minPosition>,<maxPosition>,<restPosition>,<autoDetachMs>,<inverted><lastPos>
 	servoId: unique servoId per Arduino from inmoovServoControl.servoList
 	minPosition: a value between 0 and 180, degrees to position calculation has to be done by caller
 	maxPosition: a value between 0 and 180, minPosition has to be lower than maxPosition
@@ -129,7 +129,7 @@ i12 arrived time in the future
 i13 detach servo
 i14 set servo last position before powerup
 i15 partial steps
-i16 next wanted position
+i16 next planned position
 
 i20 new autoDetach value received 
 i21 servo stop received
@@ -259,8 +259,6 @@ void setup() {
 		digitalWrite(powerGroup[powerGroupIndex].powerPin, SERVO_POWER_OFF);		// should switch relais off (apply before setting pinmode!)
 		Serial.print("set power pin to OUTPUT: "); Serial.println(powerGroup[powerGroupIndex].powerPin);
 		pinMode(powerGroup[powerGroupIndex].powerPin, OUTPUT);
-		//readCurrentMagnetAngle(0);
-
 	}
 	delay(500);
 
@@ -314,7 +312,7 @@ void powerUpServoGroup(int servoId) {
 
 			// check servo's powerGroup state
 			if (powerGroup[powerGroupIndex].powerOn) {
-				if (verbose) {
+				if (servoList[servoId].thisServoVerbose) {
 					Serial.print("power already on for power group "); Serial.print(powerGroup[powerGroupIndex].powerGroupName);
 					Serial.print(" by "); Serial.print(servoList[servoId].servoName);
 					Serial.println();
@@ -322,7 +320,7 @@ void powerUpServoGroup(int servoId) {
 			} else {
 
 				// activate power relais
-				if (log_i51) {
+				if (servoList[servoId].thisServoVerbose) {
 					Serial.print("i51 powerUpServoGroup for servo: ");Serial.print(servoList[servoId].servoName);
 					Serial.print(", powerGroup: "); Serial.print(powerGroup[powerGroupIndex].powerGroupName);
 					Serial.println();
@@ -361,7 +359,7 @@ bool hasPowerGroupActiveMovements(int powerGroupIndex) {
 
 
 // servo assign
-// 0,<servoName>,<pin>,<min>,<max>,<autoDetachMs>,<inverted>,<lastPos>,<servoPowerPin>
+// 0,<servoName>,<pin>,<min>,<max>,<rest>,<autoDetachMs>,<inverted>,<lastPos>,<servoPowerPin>
 void servoAssign() {
 
 	char * strtokIndx; // this is used by strtok() as an index
@@ -381,6 +379,9 @@ void servoAssign() {
 
 	strtokIndx = strtok(NULL, ",");		// position for next list item
 	int max = atoi(strtokIndx);         // the highest requestable position value for this servo
+
+	strtokIndx = strtok(NULL, ",");		 // position for next list item
+	int restPosition = atoi(strtokIndx); // the rest position, used for feedback servo rest positioning
 
 	strtokIndx = strtok(NULL, ",");		// position for next list item
 	int autoDetachMs = atoi(strtokIndx); // number of millis to keep servo attached after move end
@@ -410,7 +411,7 @@ void servoAssign() {
 	}
 
 	strcpy(servoList[servoId].servoName, servoName);
-	servoList[servoId].begin(pin, min, max, autoDetachMs, inverted, lastPos, servoPowerPin);
+	servoList[servoId].begin(pin, min, max, restPosition, autoDetachMs, inverted, lastPos, servoPowerPin);
 
 	//if (servoList[servoId].thisServoVerbose) {
 	if (log_i51) {
@@ -419,6 +420,7 @@ void servoAssign() {
 		Serial.print(", pin: "); Serial.print(pin);
 		Serial.print(", min: "); Serial.print(min);
 		Serial.print(", max: "); Serial.print(max);
+		Serial.print(", restPos: "); Serial.print(restPosition);
 		Serial.print(", autoDetachMs: "); Serial.print(autoDetachMs);
 		Serial.print(", inverted: "); Serial.print(inverted);
 		Serial.print(", lastPos: "); Serial.print(lastPos);
@@ -428,7 +430,6 @@ void servoAssign() {
 	servoList[servoId].detachServo(true);
 	byte status = buildStatusByte(true, false, true, autoDetachMs>0, verbose, true);
 	sendServoStatus(pin, status, lastPos);
-
 }
 
 // servo feedback definitions
@@ -457,40 +458,33 @@ void setFeedbackDefinitions() {
 	servoList[servoId].isFeedbackServo = true;
 
 	strtokIndx = strtok(NULL, ",");		// position for next list item
-	servoList[servoId].i2cMultiplexerAddress = atoi(strtokIndx);	// multiplexer address for reading magnet position
+	int i2cMultiplexerAddress = atoi(strtokIndx);	// multiplexer address for reading magnet position
+
+	strtokIndx = strtok(NULL, ",");				// position for next list item
+	int i2cMultiplexerChannel = atoi(strtokIndx);   // channel for reading magnet p this servo
+
+	strtokIndx = strtok(NULL, ",");				// position for next list item
+	int feedbackMagnetOffset = atoi(strtokIndx);	// feedback read angle offset
 
 	strtokIndx = strtok(NULL, ",");		// position for next list item
-	servoList[servoId].i2cMultiplexerChannel = atoi(strtokIndx);   // channel for reading magnet p this servo
+	int feedbackInverted = atoi(strtokIndx);	// feedback direction might be inverted (gear)
 
-	strtokIndx = strtok(NULL, ",");		// position for next list item
-	servoList[servoId].kp = atof(strtokIndx);
+	strtokIndx = strtok(NULL, ",");				// position for next list item
+	float degPerPos = atof(strtokIndx);	// for calculating position from degrees
 
-	strtokIndx = strtok(NULL, ",");		// position for next list item
-	servoList[servoId].ki = atof(strtokIndx);
+	strtokIndx = strtok(NULL, ",");				// position for next list item
+	float kp = atof(strtokIndx);	// pid control P value
 
-	strtokIndx = strtok(NULL, ",");		// position for next list item
-	servoList[servoId].kd = atof(strtokIndx);
+	strtokIndx = strtok(NULL, ",");				// position for next list item
+	float ki = atof(strtokIndx);	// pid control I value
 
-	strtokIndx = strtok(NULL, ",");		// position for next list item
-	servoList[servoId].degPerPos = atof(strtokIndx);
+	strtokIndx = strtok(NULL, ",");				// position for next list item
+	float kd = atof(strtokIndx);	// pid control D value
 
-	strtokIndx = strtok(NULL, ",");		// position for next list item
-	servoList[servoId].feedbackInverted = atoi(strtokIndx);
 
-	//if (servoList[servoId].thisServoVerbose) {
-	if (log_i52) {
-		Serial.print("i52 feedback definitions, servoId: "); Serial.print(servoId);
-		Serial.print(", servoName: "); Serial.print(servoList[servoId].servoName);
-		Serial.print(", isFeedbackServo: "); Serial.print(servoList[servoId].isFeedbackServo);
-		Serial.print(", i2cMultiplexerAddress: "); Serial.print(servoList[servoId].i2cMultiplexerAddress);
-		Serial.print(", i2cMultiplexerChannel: "); Serial.print(servoList[servoId].i2cMultiplexerChannel);
-		Serial.print(", kp: "); Serial.print(servoList[servoId].kp);
-		Serial.print(", ki: "); Serial.print(servoList[servoId].ki);
-		Serial.print(", kd: "); Serial.print(servoList[servoId].kd);
-		Serial.print(", degPerPos: "); Serial.print(servoList[servoId].degPerPos);
-		Serial.print(", feedbackInverted: "); Serial.print(servoList[servoId].feedbackInverted);
-		Serial.println();
-	}
+	servoList[servoId].setFeedbackValues(i2cMultiplexerAddress, i2cMultiplexerChannel, 
+		feedbackMagnetOffset, feedbackInverted, degPerPos,
+		kp, ki, kd);
 }
 
 
@@ -621,7 +615,7 @@ void reportServoStatus() {
 			servoList[servoId].currentPosition, 
 			ms, 
 			servoList[servoId].servoWritePosition, 
-			servoList[servoId].wantedPosition);
+			servoList[servoId].plannedPosition);
 	} else {
 		sendServoStatus(pin, status, servoList[servoId].currentPosition);
 	}
@@ -825,6 +819,7 @@ void loop() {
 
 	case '0':	// assign <servo>,<pin>,<min>,<max>
 		servoAssign();
+		Serial.println("after servo assign");
 		break;
 
 	case '1':	// move to absolute <servo>,<position>,<duration>
